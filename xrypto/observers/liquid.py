@@ -92,12 +92,14 @@ class Liquid(BasicBot):
         max_bch_trade_amount = config.LIQUID_MAX_BCH_AMOUNT
         min_bch_trade_amount = config.LIQUID_MIN_BCH_AMOUNT
 
+        liquid_max_diff = config.LIQUID_MAX_DIFF
+
         # excute trade
         if self.buying_len() < config.LIQUID_BUY_ORDER_PAIRS:
-            bprice = refer_bid_price*(1-config.LIQUID_DIFF)
+            bprice = refer_bid_price*(1-config.LIQUID_INIT_DIFF)
 
             amount = round(max_bch_trade_amount*random.random(), 2)
-            price = round(bprice*(1-0.1*random.random()), 5) #-10% random price base on sprice
+            price = round(bprice*(1 - liquid_max_diff*random.random()), 5) #-10% random price base on sprice
 
             Qty = min(self.mm_broker.btc_balance/price, self.hedge_broker.bch_available)
             # Qty = min(Qty, config.LIQUID_BTC_RESERVE/price)
@@ -108,10 +110,10 @@ class Liquid(BasicBot):
                 self.new_order(self.mm_market, 'buy', amount=amount, price=price)
 
         if self.selling_len() < config.LIQUID_SELL_ORDER_PAIRS:
-            sprice = refer_ask_price*(1+config.LIQUID_DIFF)
+            sprice = refer_ask_price*(1+config.LIQUID_INIT_DIFF)
 
             amount = round(max_bch_trade_amount*random.random(), 2)
-            price = round(sprice*(1+0.1*random.random()), 5) # +10% random price base on sprice
+            price = round(sprice*(1 + liquid_max_diff*random.random()), 5) # +10% random price base on sprice
 
             Qty = min(self.mm_broker.bch_available, self.hedge_broker.btc_available/price)
             # Qty = min(Qty, config.LIQUID_BCH_RESERVE)
@@ -123,11 +125,8 @@ class Liquid(BasicBot):
         return
 
     def check_orders(self, depths, refer_bid_price, refer_ask_price):
-        
-        liquid_diff = max(config.LIQUID_DIFF*0.5, config.LIQUID_MIN_DIFF)
-
-        max_bprice = refer_bid_price*(1-liquid_diff)
-        min_sprice = refer_ask_price*(1+liquid_diff)
+        max_bprice = refer_bid_price*(1-config.LIQUID_MIN_DIFF)
+        min_sprice = refer_ask_price*(1+config.LIQUID_MIN_DIFF)
         
         order_ids = self.get_order_ids()
         if not order_ids:
