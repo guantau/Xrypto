@@ -92,7 +92,7 @@ class KKEX(Broker):
     def _get_balances(self):
         """Get balance"""
         res = self.client.get_userinfo()
-        logging.debug("get_balances: %s" % res)
+        logging.debug("kkex get_balances: %s" % res)
 
         entry = res['info']['funds']
 
@@ -101,7 +101,6 @@ class KKEX(Broker):
         self.btc_available = float(entry['free']['BTC'])
         self.btc_balance = float(entry['freezed']['BTC']) + float(entry['free']['BTC'])
 
-        logging.debug(self)
         return res
 
     def _get_orders_history(self):
