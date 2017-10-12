@@ -126,8 +126,11 @@ class Liquid(BasicBot):
 
     def check_orders(self, depths, refer_bid_price, refer_ask_price):
         max_bprice = refer_bid_price*(1-config.LIQUID_MIN_DIFF)
+        min_bprice = refer_bid_price*(1-config.LIQUID_MAX_DIFF)
+
         min_sprice = refer_ask_price*(1+config.LIQUID_MIN_DIFF)
-        
+        max_sprice = refer_ask_price*(1+config.LIQUID_MAX_DIFF)
+
         order_ids = self.get_order_ids()
         if not order_ids:
             return
@@ -137,27 +140,20 @@ class Liquid(BasicBot):
             for order in orders:
                 local_order = self.get_order(order['order_id'])
                 self.hedge_order(local_order, order)
+                current_time = time.time()
 
                 if order['status'] == 'CLOSE' or order['status'] == 'CANCELED':
                     logging.info("order#%s %s: amount = %s price = %s deal = %s" % (order['order_id'], order['status'], order['amount'], order['price'], order['deal_amount']))
                     self.remove_order(order['order_id'])
 
                 if order['type'] =='buy':
-                    current_time = time.time()
-                    if order['price'] > max_bprice:
-                        logging.info("[TraderBot] cancel last BUY trade " +
-                                        "occured %.2f seconds ago" %
-                                        (current_time - local_order['time']))
-                        logging.info("cancel max_bprice %s order['price'] = %s" % (max_bprice, order['price']))
+                    if order['price'] > max_bprice or order['price'] < min_bprice or current_time - local_order['time'] > 30:
+                        logging.info("[TraderBot] cancel BUY order #%s ['price'] = %s NOT IN [%s, %s]" % (order['order_id'], order['price'], min_bprice, max_bprice))
 
                         self.cancel_order(self.mm_market, 'buy', order['order_id'])
                 elif order['type'] == 'sell':
-                    current_time = time.time()
-                    if order['price'] < min_sprice:
-                        logging.info("[TraderBot] cancel last SELL trade " +
-                                        "occured %.2f seconds ago" %
-                                        (current_time - local_order['time']))
-                        logging.info("cancel min_sprice %s order['price'] = %s" % (min_sprice, order['price']))
+                    if order['price'] < min_sprice or order['price'] > max_sprice or current_time - local_order['time'] > 30:
+                        logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s]" % (order['order_id'], order['price'], min_sprice, max_sprice))
 
                         self.cancel_order(self.mm_market, 'sell', order['order_id'])
         
