@@ -99,7 +99,7 @@ class Liquid(BasicBot):
             bprice = refer_bid_price*(1-config.LIQUID_INIT_DIFF)
 
             amount = round(max_bch_trade_amount*random.random(), 2)
-            price = round(bprice*(1 - liquid_max_diff*random.random()), 5) #-10% random price base on sprice
+            price = round(bprice*(1 - liquid_max_diff*random.random()), 5) #-10% random price base on bprice
 
             Qty = min(self.mm_broker.btc_balance/price, self.hedge_broker.bch_available)
             # Qty = min(Qty, config.LIQUID_BTC_RESERVE/price)
@@ -147,13 +147,13 @@ class Liquid(BasicBot):
                     self.remove_order(order['order_id'])
 
                 if order['type'] =='buy':
-                    if order['price'] > max_bprice or order['price'] < min_bprice or current_time - local_order['time'] > 30:
-                        logging.info("[TraderBot] cancel BUY order #%s ['price'] = %s NOT IN [%s, %s]" % (order['order_id'], order['price'], min_bprice, max_bprice))
+                    if order['price'] > max_bprice or current_time - local_order['time'] > 60:
+                        logging.info("[TraderBot] cancel BUY order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_bprice, max_bprice))
 
                         self.cancel_order(self.mm_market, 'buy', order['order_id'])
                 elif order['type'] == 'sell':
-                    if order['price'] < min_sprice or order['price'] > max_sprice or current_time - local_order['time'] > 30:
-                        logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s]" % (order['order_id'], order['price'], min_sprice, max_sprice))
+                    if order['price'] < min_sprice or current_time - local_order['time'] > 30:
+                        logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_sprice, max_sprice))
 
                         self.cancel_order(self.mm_market, 'sell', order['order_id'])
         
