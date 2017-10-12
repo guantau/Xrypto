@@ -149,12 +149,12 @@ class Liquid(BasicBot):
 
                 if order['type'] =='buy':
                     if order['price'] > max_bprice or timediff > timeout_adjust:
-                        logging.info("[TraderBot] cancel BUY order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_bprice, max_bprice))
+                        logging.info("[TraderBot] cancel BUY  order #%s ['price'] = %s NOT IN [%s, %s] or timeout[%s>%s]" % (order['order_id'], order['price'], min_bprice, max_bprice, timediff, timeout_adjust))
 
                         self.cancel_order(self.mm_market, 'buy', order['order_id'])
                 elif order['type'] == 'sell':
                     if order['price'] < min_sprice or timediff > timeout_adjust:
-                        logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_sprice, max_sprice))
+                        logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s] or timeout[%s>%s]" % (order['order_id'], order['price'], min_sprice, max_sprice, timediff, timeout_adjust))
 
                         self.cancel_order(self.mm_market, 'sell', order['order_id'])
         
