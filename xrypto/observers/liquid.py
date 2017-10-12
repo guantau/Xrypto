@@ -140,7 +140,7 @@ class Liquid(BasicBot):
             for order in orders:
                 local_order = self.get_order(order['order_id'])
                 self.hedge_order(local_order, order)
-                timediff = time.time() - local_order['time']
+                timediff = int(time.time() - local_order['time'])
                 timeout_adjust = random.randint(600, 3600)
                 
                 if order['status'] == 'CLOSE' or order['status'] == 'CANCELED':
