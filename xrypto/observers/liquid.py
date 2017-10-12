@@ -140,19 +140,20 @@ class Liquid(BasicBot):
             for order in orders:
                 local_order = self.get_order(order['order_id'])
                 self.hedge_order(local_order, order)
-                current_time = time.time()
-
+                timediff = time.time() - local_order['time']
+                timeout_adjust = max(60, 3600*random.random())
+                
                 if order['status'] == 'CLOSE' or order['status'] == 'CANCELED':
                     logging.info("order#%s %s: amount = %s price = %s deal = %s" % (order['order_id'], order['status'], order['amount'], order['price'], order['deal_amount']))
                     self.remove_order(order['order_id'])
 
                 if order['type'] =='buy':
-                    if order['price'] > max_bprice or current_time - local_order['time'] > 60:
+                    if order['price'] > max_bprice or timediff > timeout_adjust:
                         logging.info("[TraderBot] cancel BUY order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_bprice, max_bprice))
 
                         self.cancel_order(self.mm_market, 'buy', order['order_id'])
                 elif order['type'] == 'sell':
-                    if order['price'] < min_sprice or current_time - local_order['time'] > 30:
+                    if order['price'] < min_sprice or timediff > timeout_adjust:
                         logging.info("[TraderBot] cancel SELL order #%s ['price'] = %s NOT IN [%s, %s] or timeout" % (order['order_id'], order['price'], min_sprice, max_sprice))
 
                         self.cancel_order(self.mm_market, 'sell', order['order_id'])
