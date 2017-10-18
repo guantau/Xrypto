@@ -74,9 +74,15 @@ class Liquid(BasicBot):
                 self.risk_protect()
                 return
         
-        self.check_orders(depths, refer_bid_price, refer_ask_price)
+        try:
+            mm_bid_price, mm_ask_price = self.get_ticker(depths, self.mm_market)
+        except Exception as e:
+            logging.warn('%s exception when get_ticker:%s' % (self.mm_market, e))
+            return
+        
+        self.check_orders(refer_bid_price, refer_ask_price)
 
-        self.place_orders(refer_bid_price, refer_ask_price)
+        self.place_orders(refer_bid_price, refer_ask_price, mm_bid_price, mm_ask_price)
 
     def get_ticker(self, depths, market):
         bid_price = depths[market]["bids"][0]['price']
@@ -85,7 +91,7 @@ class Liquid(BasicBot):
         # logging.debug("market:%s bid, ask=(%s/%s)" % (market, bid_price, ask_price))
         return bid_price, ask_price
 
-    def place_orders(self, refer_bid_price, refer_ask_price):
+    def place_orders(self, refer_bid_price, refer_ask_price, mm_bid_price, mm_ask_price):
         # Update client balance
         self.update_balance()   
 
@@ -95,7 +101,7 @@ class Liquid(BasicBot):
         liquid_max_diff = config.LIQUID_MAX_DIFF
 
         # excute trade
-        if self.buying_len() < config.LIQUID_BUY_ORDER_PAIRS:
+        if self.buying_len() < 2*config.LIQUID_BUY_ORDER_PAIRS:
             bprice = refer_bid_price*(1-config.LIQUID_INIT_DIFF)
 
             amount = round(max_bch_trade_amount*random.random(), 2)
@@ -107,9 +113,10 @@ class Liquid(BasicBot):
             if Qty < amount or amount < min_bch_trade_amount:
                 logging.verbose("BUY amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
             else:
-                self.new_order(self.mm_market, 'buy', amount=amount, price=price)
+                if (mm_ask_price > 0 and mm_ask_price < bprice) or self.buying_len() < config.LIQUID_BUY_ORDER_PAIRS:
+                    self.new_order(self.mm_market, 'buy', amount=amount, price=price)
 
-        if self.selling_len() < config.LIQUID_SELL_ORDER_PAIRS:
+        if self.selling_len() < 2*config.LIQUID_SELL_ORDER_PAIRS:
             sprice = refer_ask_price*(1+config.LIQUID_INIT_DIFF)
 
             amount = round(max_bch_trade_amount*random.random(), 2)
@@ -120,11 +127,13 @@ class Liquid(BasicBot):
             if Qty < amount or amount < min_bch_trade_amount:
                 logging.verbose("SELL amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
             else:
-                self.new_order(self.mm_market, 'sell', amount=amount, price=price)
+                if (mm_bid_price > 0 and mm_bid_price > sprice) or self.selling_len() < config.LIQUID_SELL_ORDER_PAIRS:
+                    self.new_order(self.mm_market, 'sell', amount=amount, price=price)
+
 
         return
 
-    def check_orders(self, depths, refer_bid_price, refer_ask_price):
+    def check_orders(self, refer_bid_price, refer_ask_price):
         max_bprice = refer_bid_price*(1-config.LIQUID_MIN_DIFF)
         min_bprice = refer_bid_price*(1-config.LIQUID_MAX_DIFF)
 
