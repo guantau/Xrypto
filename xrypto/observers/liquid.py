@@ -113,6 +113,9 @@ class Liquid(BasicBot):
             if Qty < amount or amount < min_bch_trade_amount:
                 logging.verbose("BUY amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
             else:
+                if mm_ask_price > 0 and mm_ask_price < bprice:
+                    price = bprice
+                    
                 if (mm_ask_price > 0 and mm_ask_price < bprice) or self.buying_len() < config.LIQUID_BUY_ORDER_PAIRS:
                     self.new_order(self.mm_market, 'buy', amount=amount, price=price)
 
@@ -124,9 +127,13 @@ class Liquid(BasicBot):
 
             Qty = min(self.mm_broker.bch_available, self.hedge_broker.btc_available/price)
             # Qty = min(Qty, config.LIQUID_BCH_RESERVE)
+
             if Qty < amount or amount < min_bch_trade_amount:
                 logging.verbose("SELL amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
             else:
+                if mm_bid_price > 0 and mm_bid_price > sprice:
+                    price = sprice
+
                 if (mm_bid_price > 0 and mm_bid_price > sprice) or self.selling_len() < config.LIQUID_SELL_ORDER_PAIRS:
                     self.new_order(self.mm_market, 'sell', amount=amount, price=price)
 
