@@ -1,15 +1,7 @@
 markets = [
-# "BitstampUSD",
-# "BTCCCNY",
-# "BtceUSD",
-# "CoinbaseUSD",
-# "GeminiUSD",
-# "KrakenEUR",
-# "KrakenUSD",
-# "OKCoinCNY",
-# "HuobiCNY",
 # "Bitfinex_BCH_BTC",
 # "Bittrex_BCH_BTC",
+# "KKEX_BCH_BTC",
 ]
 
 # observers if any
