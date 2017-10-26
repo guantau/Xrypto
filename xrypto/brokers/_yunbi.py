@@ -20,7 +20,7 @@ class Yunbi(Broker):
     def _buy_limit(self, amount, price):
         """Create a buy limit order"""
         res = self.client.buy_limit(
-            market=self.pair_code
+            market=self.pair_code,
             amount=str(amount),
             price=str(price)
             )
@@ -32,7 +32,7 @@ class Yunbi(Broker):
     def _sell_limit(self, amount, price):
         """Create a sell limit order"""
         res = self.client.sell_limit(
-            market=self.pair_code
+            market=self.pair_code,
             amount=str(amount),
             price=str(price))
         logging.verbose('_sell_limit: %s' % res)

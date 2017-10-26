@@ -10,6 +10,51 @@ class OKCoinSpot:
         self.__apikey = apikey
         self.__secretkey = secretkey
 
+    """ 获取OKCOIN现货K线
+        
+        :param symbol required  btc_cny：比特币    
+                                ltc_cny：莱特币    
+                                eth_cny :以太坊     
+                                etc_cny :以太经典    
+                                bcc_cny :比特现金
+        :param type   required  1min : 1分钟
+                                3min : 3分钟
+                                5min : 5分钟
+                                15min : 15分钟
+                                30min : 30分钟
+                                1day : 1日
+                                3day : 3日
+                                1week : 1周
+                                1hour : 1小时
+                                2hour : 2小时
+                                4hour : 4小时
+                                6hour : 6小时
+                                12hour : 12小时  
+
+        :param size    optional 指定获取数据的条数，默认全部获取
+        :param since   optional 时间戳，返回该时间戳以后的数据(例如1417536000000)，默认全部获取
+        
+        :return 
+        [
+            1417536000000,	时间戳
+            2370.16,	    开
+            2380,	        高
+            2352,	        低
+            2367.37,	    收
+            17259.83	    交易量
+        ]
+    """
+    def kline(self, symbol, type, size = None, since = None):
+        KLINE_RESOURCE = "/api/v1/kline.do"
+        params=[]
+        params.append('symbol=%s' % symbol)
+        params.append('type=%s' % type)
+        if size is not None:
+            params.append('size=%s' % size)
+        if since is not None:
+            params.append('since=%s' % since)
+        return httpGet(self.__url, KLINE_RESOURCE, '&'.join(params))
+
     #获取OKCOIN现货行情信息
     def ticker(self,symbol = ''):
         TICKER_RESOURCE = "/api/v1/ticker.do"

@@ -25,6 +25,7 @@ class Market(object):
         self.request_timeout = 10 #5s
         self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [
                 {'price': 0, 'amount': 0}]}
+        self.kline = None
                 
     @property
     def name(self):
@@ -136,6 +137,9 @@ class Market(object):
 
     ## Abstract methods
     def update_depth(self):
+        pass
+
+    def get_kline(self, type, size=None, since=None):
         pass
 
     def buy(self, price, amount):

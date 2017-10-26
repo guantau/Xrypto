@@ -2,6 +2,7 @@
 
 import json
 import config
+import pandas as pd
 from .market import Market
 from exchanges.okcoin.OkcoinSpotAPI import OKCoinSpot
 
@@ -22,6 +23,18 @@ class OKCoin(Market):
         if pair_code == 'btc_cny':
             base_currency = 'CNY'
             market_currency = 'BTC'
+        elif pair_code == 'ltc_cny':
+            base_currency = 'CNY'
+            market_currency = 'LTC'
+        elif pair_code == 'eth_cny':
+            base_currency = 'CNY'
+            market_currency = 'ETH'
         else:
             assert(False)
         return base_currency, market_currency
+
+    def get_kline(self, type, size=None, since=None):
+        KLINE_TT_COLS = ['date', 'open', 'high', 'low', 'close', 'volume']
+        raw_kline = self.client.kline(symbol=self.pair_code, type=type, size=size, since=since)
+        self.kline = pd.DataFrame(raw_kline, columns=KLINE_TT_COLS)
+        return self.kline
