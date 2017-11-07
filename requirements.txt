@@ -5,3 +5,4 @@ thriftpy
 -e git+https://github.com/philsong/python-bittrex.git#egg=python-bittrex
 -e git+https://github.com/philsong/huobi-client-python#egg=huobi_client
 python-binance
+kafka-python

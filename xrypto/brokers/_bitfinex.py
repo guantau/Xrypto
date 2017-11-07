@@ -1,7 +1,6 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 from .broker import Broker, TradeException
-import config
 import logging
 import bitfinex
 
@@ -13,9 +12,7 @@ class Bitfinex(Broker):
 
         super().__init__(base_currency, market_currency, pair_code)
 
-        self.client = bitfinex.TradeClient(
-                    api_key if api_key else config.Bitfinex_API_KEY,
-                    api_secret if api_secret else config.Bitfinex_SECRET_TOKEN)
+        self.client = bitfinex.TradeClient(api_key, api_secret)
 
         # self.get_balances()
  

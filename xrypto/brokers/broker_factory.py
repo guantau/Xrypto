@@ -1,9 +1,9 @@
-from ._kkex import KKEX
-from ._bittrex import Bittrex
-from ._bitfinex import Bitfinex
-from ._viabtc import Viabtc
 import logging
-import config
+import xrypto.config as config
+from xrypto.brokers._kkex import KKEX
+from xrypto.brokers._bittrex import Bittrex
+from xrypto.brokers._bitfinex import Bitfinex
+from xrypto.brokers._viabtc import Viabtc
 
 def create_brokers(exchangeNames):
     brokers = {}

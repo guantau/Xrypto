@@ -134,7 +134,7 @@ WEBSOCKET_PORT = 13001
 ENV = 'local'
 
 try:
-    from local_config import *
+    from xrypto.local_config import *
 except ImportError:
     pass
 

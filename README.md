@@ -45,6 +45,10 @@ variants of them, use:
     sudo apt-get install python3 python3-pip python-nose
     pip3 install -r requirements.txt
 
+    source setup-env.sh
+    python xrypto/observers/balancedumper.py
+    python xrypto/cli.py feed -mBitfinex_BCH_BTC
+    
 # Debug
 
     python3 xrypto/cli.py watch -d

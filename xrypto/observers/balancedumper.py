@@ -1,15 +1,13 @@
-from .observer import Observer
 import json
 import time
 import os
-from brokers import okex_btc_future,okcoin_btc_cny,huobi_btc_cny
 import sys
 import traceback
-import config
 import logging
-from exchanges.emailer import send_email
-from .basicbot import BasicBot
-from brokers.broker_factory import create_brokers
+import xrypto.config as config
+
+from xrypto.observers.basicbot import BasicBot
+from xrypto.brokers.broker_factory import create_brokers
 
 class BalanceDumper(BasicBot):
     exchange = 'Bitfinex_BCH_BTC'
@@ -32,6 +30,9 @@ class BalanceDumper(BasicBot):
             os.mkdir(self.out_dir)
         except:
             pass
+
+        logger = logging.getLogger()    # initialize logging class
+        logger.setLevel(logging.INFO)  # default log level
 
     def save_asset(self, price, btc, bch, profit):
         filename = self.out_dir + self.asset_csv
@@ -110,3 +111,27 @@ class BalanceDumper(BasicBot):
         line.add("btc", attr, btc)
         line.add("bch", attr, bch)
         line.render('./data/ka.html')
+
+    def main(self):
+        from kafka import KafkaConsumer
+        consumer = KafkaConsumer('datafeed-depth',
+                                 value_deserializer=lambda m: json.loads(
+                                     m.decode('utf-8')),
+                                 bootstrap_servers='localhost:9092')
+        for message in consumer:
+            # print (message)
+            # message value and key are raw bytes -- decode if necessary!
+            # e.g., for unicode: `message.value.decode('utf-8')`
+            print ("%s:%d:%d: key=%s" % (message.topic, message.partition,
+                                                message.offset, message.key))
+            
+            depths = message.value
+            self.tick(depths)
+
+def main():
+    cli = BalanceDumper()
+    cli.main()
+
+
+if __name__ == "__main__":
+    main()

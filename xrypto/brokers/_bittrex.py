@@ -1,7 +1,6 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 from .broker import Broker, TradeException
-import config
 import logging
 from bittrex import bittrex
  
@@ -13,9 +12,7 @@ class Bittrex(Broker):
 
         super().__init__(base_currency, market_currency, pair_code)
 
-        self.client = bittrex.Bittrex(
-                    api_key if api_key else config.Bittrex_API_KEY,
-                    api_secret if api_secret else config.Bittrex_SECRET_TOKEN)
+        self.client = bittrex.Bittrex(api_key, api_secret)
 
         # self.get_balances()
  

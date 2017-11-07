@@ -1,8 +1,9 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 import logging
-import config
 import inspect
+
+import xrypto.config as config
 
 def get_current_function_name():
     return inspect.stack()[1][3]

@@ -1,9 +1,8 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 from .broker import Broker, TradeException
-import config
 import logging
-from exchanges.kkex_api import Client
+from xrypto.exchanges.kkex_api import Client
 
 class KKEX(Broker):
     def __init__(self, pair_code, api_key=None, api_secret=None):
@@ -13,8 +12,8 @@ class KKEX(Broker):
         super().__init__(base_currency, market_currency, pair_code)
         
         self.client = Client(
-                    api_key if api_key else config.KKEX_API_KEY,
-                    api_secret if api_secret else config.KKEX_SECRET_TOKEN)
+                    api_key,
+                    api_secret)
  
     def get_tradeable_pairs(self, pair_code):
         if pair_code == 'BCCBTC':

@@ -35,6 +35,13 @@ class CLI:
     def exec_command(self, args):
         logging.debug('exec_command:%s' % args)
 
+        if "feed" in args.command:
+            self.datafeed = Datafeed()
+            if args.markets:
+                self.datafeed.init_markets(args.markets.split(","))
+
+            self.datafeed._run_loop()
+
         if "replay-history" in args.command:
             self.create_arbitrer(args)
             self.arbitrer.replay_history(args.replay_history)
@@ -211,7 +218,7 @@ class CLI:
                             help="markets, example: -mHaobtcCNY,Bitstamp")
         parser.add_argument("-s", "--status", help="status", action="store_true")
         parser.add_argument("command", nargs='*', default="watch",
-                            help='verb: "watch|replay-history|get-balance|list-public-markets|get-broker-balance"')
+                            help='verb: "feed|watch|replay-history|get-balance|list-public-markets|get-broker-balance"')
         args = parser.parse_args()
         self.init_logger(args)
         self.exec_command(args)

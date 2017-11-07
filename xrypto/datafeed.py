@@ -14,6 +14,10 @@ import traceback
 import re,sys,re
 import string
 import signal
+
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
+
 from markets.market_factory import create_markets
 
 is_sigint_up = False
@@ -121,13 +125,13 @@ class Datafeed(object):
         for market in self.markets:
             market.terminate()
 
-    def run_loop(self):
-        if len(self.markets) == 0:
-            print('empty markets')
+    def _run_loop(self, is_only_feed = True):
+        if not is_only_feed and len(self.observers) == 0:
+            print('empty observers')
             return
 
-        if len(self.observers) == 0:
-            print('empty observers')
+        if len(self.markets) == 0:
+            print('empty markets')
             return
         #
         signal.signal(signal.SIGINT, sigint_handler)
@@ -135,17 +139,36 @@ class Datafeed(object):
         signal.signal(signal.SIGHUP, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
 
+        if is_only_feed:
+            producer = KafkaProducer(bootstrap_servers='localhost:9092',
+                                        key_serializer=str.encode,
+                                        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
         while True:
-            self.update_balance()
+            if not is_only_feed:
+                self.update_balance()
 
             self.depths = self.update_depths()
-
-            try:
-                self.tick()
-            except Exception as ex:
-                logging.warn("exception depths:%s" % ex)
-                traceback.print_exc()
-                return
+            print(is_only_feed)
+            if is_only_feed:
+                future = producer.send(
+                    'datafeed-depth', key='ping', value= self.depths)
+                # Block for 'synchronous' sends
+                try:
+                    record_metadata = future.get(timeout=60)
+                    print(record_metadata)
+                except KafkaError:
+                    print('err....')
+                    # Decide what to do if produce request failed...
+                    log.exception()
+                    pass
+            else:
+                try:
+                    self.tick()
+                except Exception as ex:
+                    logging.warn("exception depths:%s" % ex)
+                    traceback.print_exc()
+                    return
 
             if is_sigint_up:
                 # 中断时需要处理的代码
@@ -155,3 +178,15 @@ class Datafeed(object):
             sys.stdout.write(".")
             sys.stdout.flush()
             time.sleep(config.refresh_rate)
+
+    def run_loop(self):
+        is_only_feed = False
+        self._run_loop(is_only_feed)
+
+def main():
+    cli = Datafeed()
+    cli._run_loop()
+
+
+if __name__ == "__main__":
+    main()

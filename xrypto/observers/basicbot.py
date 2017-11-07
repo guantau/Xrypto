@@ -1,12 +1,11 @@
 import logging
-from .observer import Observer
 import json
 import time
 import os
 import math
 import sys
 import traceback
-import config
+from xrypto.observers.observer import Observer
 
 class BasicBot(Observer):
     def __init__(self):
@@ -104,6 +103,20 @@ class BasicBot(Observer):
             return True
 
     def cancel_all_orders(self, market):
+        orders = self.brokers[market].get_orders_history()
+        if not orders:
+            return
+
+        for order in orders:
+            logging.verbose("Cancelling: %s %s @ %s" % (order['type'], order['amount'], order['price']))
+            while True:
+                result = self.cancel_order(market, order['type'], order['order_id']); 
+                if not result:
+                    time.sleep(10) 
+                else:
+                    break
+
+    def cancel_local_orders(self, market):
         orders = self.brokers[market].get_orders_history()
         if not orders:
             return
