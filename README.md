@@ -46,9 +46,14 @@ variants of them, use:
     pip3 install -r requirements.txt
 
     source setup-env.sh
+    python xrypto/cli.py feed -mKKEX_BCH_BTC,Bitfinex_BCH_BTC 
+    python xrypto/cli.py -oLiquid
+    python xrypto/cli.py -oBalanceDumper
+
     python xrypto/observers/balancedumper.py
-    python xrypto/cli.py feed -mBitfinex_BCH_BTC
+
     
+
 # Debug
 
     python3 xrypto/cli.py watch -d

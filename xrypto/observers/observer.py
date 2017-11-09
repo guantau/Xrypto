@@ -1,6 +1,6 @@
 import abc
 import json
-
+import logging
 
 class Observer(object, metaclass=abc.ABCMeta):
     def __init__(self):

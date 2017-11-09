@@ -142,7 +142,6 @@ class Datafeed(object):
 
         kafka_topic = config.kafka_topic
         bootstrap_servers = config.bootstrap_servers
-        print(bootstrap_servers)
 
         try:
             if is_feed:
