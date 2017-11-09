@@ -133,3 +133,4 @@ class BasicBot(Observer):
     def update_balance(self):
         for kclient in self.brokers:
             self.brokers[kclient].get_balances()
+

@@ -11,7 +11,7 @@ def create_markets(exchangeNames):
     markets = {}
     for name in exchangeNames:
         if (name == 'KKEX_BCH_BTC'):
-            xchg = KKEX('BCCBTC')
+            xchg = KKEX('BCHBTC')
         elif (name == 'KKEX_ETH_BTC'):
             xchg = KKEX('ETHBTC')
   

@@ -19,7 +19,7 @@ class KKEX(Market):
         self.depth = self.format_depth(raw_depth)
 
     def get_tradeable_pairs(self, pair_code):
-        if pair_code == 'BCCBTC':
+        if pair_code == 'BCHBTC':
             base_currency = 'BTC'
             market_currency = 'BCH'
         elif pair_code == 'ETHBTC':

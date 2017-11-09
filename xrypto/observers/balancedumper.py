@@ -58,11 +58,7 @@ class BalanceDumper(BasicBot):
             self.bch_balance += self.brokers[kclient].bch_balance
 
     def tick(self, depths):
-        # Update client balance
-        self.update_balance()
-        self.sum_balance()
-
-        # get price
+        # get&verify price
         try:
             bid_price = depths[self.exchange]["bids"][0]['price']
             ask_price = depths[self.exchange]["asks"][0]['price']
@@ -75,6 +71,10 @@ class BalanceDumper(BasicBot):
             traceback.print_exc()
             return
         
+        # Update client balance
+        self.update_balance()
+        self.sum_balance()
+
         btc_diff = self.btc_balance - self.init_btc
         bch_diff = self.bch_balance - self.init_bch
 
@@ -112,26 +112,8 @@ class BalanceDumper(BasicBot):
         line.add("bch", attr, bch)
         line.render('./data/ka.html')
 
-    def main(self):
-        from kafka import KafkaConsumer
-        consumer = KafkaConsumer('datafeed-depth',
-                                 value_deserializer=lambda m: json.loads(
-                                     m.decode('utf-8')),
-                                 bootstrap_servers='localhost:9092')
-        for message in consumer:
-            # print (message)
-            # message value and key are raw bytes -- decode if necessary!
-            # e.g., for unicode: `message.value.decode('utf-8')`
-            print ("%s:%d:%d: key=%s" % (message.topic, message.partition,
-                                                message.offset, message.key))
-            
-            depths = message.value
-            self.tick(depths)
-
-def main():
-    cli = BalanceDumper()
-    cli.main()
-
 
 if __name__ == "__main__":
-    main()
+    cli = BalanceDumper()
+    cli.main(config)
+

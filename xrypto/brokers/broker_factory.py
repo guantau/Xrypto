@@ -9,7 +9,7 @@ def create_brokers(exchangeNames):
     brokers = {}
     for name in exchangeNames:
         if (name == 'KKEX_BCH_BTC'):
-            xchg = KKEX('BCCBTC', config.KKEX_API_KEY, config.KKEX_SECRET_TOKEN)
+            xchg = KKEX('BCHBTC', config.KKEX_API_KEY, config.KKEX_SECRET_TOKEN)
         elif (name == 'KKEX_ETH_BTC'):
             xchg = KKEX('ETHBTC', config.KKEX_API_KEY, config.KKEX_SECRET_TOKEN)
         elif (name == 'Bitfinex_BCH_BTC'):

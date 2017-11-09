@@ -16,7 +16,7 @@ class KKEX(Broker):
                     api_secret)
  
     def get_tradeable_pairs(self, pair_code):
-        if pair_code == 'BCCBTC':
+        if pair_code == 'BCHBTC':
             base_currency = 'BTC'
             market_currency = 'BCH'
         elif pair_code == 'ETHBTC':

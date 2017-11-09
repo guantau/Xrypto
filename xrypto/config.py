@@ -133,6 +133,8 @@ WEBSOCKET_PORT = 13001
 
 ENV = 'local'
 
+kafka_topic = 'df-depth-replicated'
+bootstrap_servers = 'localhost:9092'
 try:
     from xrypto.local_config import *
 except ImportError:
