@@ -219,10 +219,7 @@ class Datafeed(object):
         is_feed = False
         self._run_loop(is_feed)
 
-def main():
-    cli = Datafeed()
-    cli._run_loop()
-
 
 if __name__ == "__main__":
-    main()
+    cli = Datafeed()
+    cli._run_loop()
