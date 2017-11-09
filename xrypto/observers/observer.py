@@ -38,7 +38,7 @@ class Observer(object, metaclass=abc.ABCMeta):
                 # print (message)
                 # message value and key are raw bytes -- decode if necessary!
                 # e.g., for unicode: `message.value.decode('utf-8')`
-                print ("%s:%d:%d: key=%s" % (message.topic, message.partition,
+                logging.info ("observer: %s:%d:%d: key=%s" % (message.topic, message.partition,
                                              message.offset, message.key))
 
                 depths = message.value

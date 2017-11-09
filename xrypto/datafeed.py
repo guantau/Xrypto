@@ -177,14 +177,14 @@ class Datafeed(object):
                     # print (message)
                     # message value and key are raw bytes -- decode if necessary!
                     # e.g., for unicode: `message.value.decode('utf-8')`
-                    print ("%s:%d:%d: key=%s" % (message.topic, message.partition,
+                    logging.info ("datafeed: %s:%d:%d: key=%s" % (message.topic, message.partition,
                                                 message.offset, message.key))
                     # print(message)
                     self.update_balance()
 
                     self.depths = message.value
                     self.tick()
-                print('consumer done...')
+                logging.info('consumer done...')
                     
                 # try:
                 #     self.tick()
