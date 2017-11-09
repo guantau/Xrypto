@@ -16,6 +16,7 @@ Currently supported exchanges to get/feed data:
  - Yunbi (CNY)
  - Jubi (CNY)
  - Binance
+ - KKEX
 
 Currently supported exchanges to automate trade:
  - Bitfinex 
@@ -28,6 +29,7 @@ Currently supported exchanges to automate trade:
  - Yunbi (CNY)
  - Jubi (CNY)
  - Binance
+ - KKEX
 
 # WARNING
 
@@ -44,6 +46,11 @@ variants of them, use:
 
     sudo apt-get install python3 python3-pip python-nose
     pip3 install -r requirements.txt
+
+In our new version, you also need run Kafka to pub/sub the depth data. see http://kafka.apache.org/ to install.
+
+
+# command
 
     source setup-env.sh
     python xrypto/cli.py feed -mKKEX_BCH_BTC,Bitfinex_BCH_BTC 
