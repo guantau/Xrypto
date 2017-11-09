@@ -135,10 +135,10 @@ class Datafeed(object):
             print('empty markets')
             return
         #
-        signal.signal(signal.SIGINT, sigint_handler)
-        #以下那句在windows python2.4不通过,但在freebsd下通过
-        signal.signal(signal.SIGHUP, sigint_handler)
-        signal.signal(signal.SIGTERM, sigint_handler)
+        # signal.signal(signal.SIGINT, sigint_handler)
+        # #以下那句在windows python2.4不通过,但在freebsd下通过
+        # signal.signal(signal.SIGHUP, sigint_handler)
+        # signal.signal(signal.SIGTERM, sigint_handler)
 
         kafka_topic = config.kafka_topic
         bootstrap_servers = config.bootstrap_servers
@@ -168,39 +168,41 @@ class Datafeed(object):
                     record_metadata = future.get(timeout=60)
                     print(record_metadata)
                 except  Exception as ex:
-                    logging.warn("exception depths:%s" % ex)
+                    logging.warn("exception in producer:%s" % ex)
                     traceback.print_exc()
                     continue
+
+                sys.stdout.write(".")
+                sys.stdout.flush()
+                time.sleep(config.refresh_rate)
             else:
-                for message in consumer:
-                    # print (message)
-                    # message value and key are raw bytes -- decode if necessary!
-                    # e.g., for unicode: `message.value.decode('utf-8')`
-                    logging.info ("datafeed: %s:%d:%d: key=%s" % (message.topic, message.partition,
-                                                message.offset, message.key))
-                    # print(message)
-                    self.update_balance()
+                try:
+                    for message in consumer:
+                        # print (message)
+                        # message value and key are raw bytes -- decode if necessary!
+                        # e.g., for unicode: `message.value.decode('utf-8')`
+                        logging.info ("datafeed: %s:%d:%d: key=%s" % (message.topic, message.partition,
+                                                    message.offset, message.key))
+                        # print(message)
+                        self.update_balance()
 
-                    self.depths = message.value
-                    self.tick()
-                logging.info('consumer done...')
+                        self.depths = message.value
+                        self.tick()
+                    logging.info('consumer done...')
                     
-                # try:
+
                 #     self.tick()
-                # except Exception as ex:
-                #     logging.warn("exception depths:%s" % ex)
-                #     traceback.print_exc()
-                #     return
+                except Exception as ex:
+                    logging.warn("exception in consumer:%s" % ex)
+                    traceback.print_exc()
+                    self.terminate()
+                    return
 
-            if is_sigint_up:
-                # 中断时需要处理的代码
-                logging.info("APP Exit")
-                self.terminate()
-                break
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            time.sleep(config.refresh_rate)
-
+            # if is_sigint_up:
+            #     # 中断时需要处理的代码
+            #     logging.info("APP Exit")
+            #     self.terminate()
+            #     break
     def run_loop(self):
         is_feed = False
         self._run_loop(is_feed)
