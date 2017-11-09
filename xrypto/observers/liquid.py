@@ -93,7 +93,8 @@ class Liquid(BasicBot):
 
     def place_orders(self, refer_bid_price, refer_ask_price, mm_bid_price, mm_ask_price):
         # Update client balance
-        self.update_balance()   
+        if self.buying_len() < 2*config.LIQUID_BUY_ORDER_PAIRS or self.selling_len() < 2 * config.LIQUID_SELL_ORDER_PAIRS:
+            self.update_balance() 
 
         max_bch_trade_amount = config.LIQUID_MAX_BCH_AMOUNT
         min_bch_trade_amount = config.LIQUID_MIN_BCH_AMOUNT
