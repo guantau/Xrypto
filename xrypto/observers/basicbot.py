@@ -8,6 +8,8 @@ import traceback
 from xrypto.observers.observer import Observer
 
 class BasicBot(Observer):
+    tick_wait = 3
+    last_tick = 0
     def __init__(self):
         super().__init__()
 
@@ -134,3 +136,12 @@ class BasicBot(Observer):
         for kclient in self.brokers:
             self.brokers[kclient].get_balances()
 
+def ratelimit(func):
+    def __decorator(self, depths):
+        current_time = time.time()
+        if current_time - self.last_tick < self.tick_wait:
+            return
+        self.last_tick = current_time
+
+        func(self, depths)
+    return __decorator

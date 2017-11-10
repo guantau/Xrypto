@@ -6,14 +6,13 @@ import traceback
 import logging
 import xrypto.config as config
 
-from xrypto.observers.basicbot import BasicBot
+from xrypto.observers.basicbot import BasicBot, ratelimit
 from xrypto.brokers.broker_factory import create_brokers
 
 class BalanceDumper(BasicBot):
     exchange = 'Bitfinex_BCH_BTC'
     last_profit = 0
-    tick_wait = 10
-    last_tick = 0
+    tick_wait = 60
 
     out_dir = './data/'
     asset_csv = 'asset.csv'
@@ -57,13 +56,10 @@ class BalanceDumper(BasicBot):
         self.btc_balance = self.bch_balance = 0
         for kclient in self.brokers:
             self.btc_balance += self.brokers[kclient].btc_balance
-            self.bch_balance += self.brokers[kclient].bch_balance
-
+            self.bch_balance += self.brokers[kclient].bch_balance 
+    
+    @ratelimit
     def tick(self, depths):
-        current_time = time.time()
-        if current_time - self.last_tick < self.tick_wait:
-            return
-
         # get&verify price
         try:
             bid_price = depths[self.exchange]["bids"][0]['price']
