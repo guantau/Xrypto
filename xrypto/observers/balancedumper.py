@@ -12,6 +12,8 @@ from xrypto.brokers.broker_factory import create_brokers
 class BalanceDumper(BasicBot):
     exchange = 'Bitfinex_BCH_BTC'
     last_profit = 0
+    tick_wait = 10
+    last_tick = 0
 
     out_dir = './data/'
     asset_csv = 'asset.csv'
@@ -58,6 +60,10 @@ class BalanceDumper(BasicBot):
             self.bch_balance += self.brokers[kclient].bch_balance
 
     def tick(self, depths):
+        current_time = time.time()
+        if current_time - self.last_tick < self.tick_wait:
+            return
+
         # get&verify price
         try:
             bid_price = depths[self.exchange]["bids"][0]['price']
