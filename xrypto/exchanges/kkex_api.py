@@ -28,11 +28,11 @@ class Client:
         url = urljoin(self.api_root, path)
         r = requests.post(url, data=params, timeout=10)
         try:
-            res = r.json()
-            # logging.debug('kkex:res %s', res)
-            return res
+            return r.json()
+
         except ValueError as e:
-            print(r.text)
+            logging.error("Can't trade_api - err:%s" % str(e))
+            logging.error("response:%s" % r.text)
             raise
 
     def public_api(self, path, params=None):
@@ -43,7 +43,8 @@ class Client:
         try:
             return r.json()
         except ValueError as e:
-            print(r.text)
+            logging.error("Can't public_api - err:%s" % str(e))
+            logging.error("response:%s" % r.text)
             raise
 
     def ticker(self, symbol):

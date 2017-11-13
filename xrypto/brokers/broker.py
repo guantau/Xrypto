@@ -62,7 +62,7 @@ class Broker(object):
         logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
                         price, self.base_currency, self.name))
 
-        try:
+        try:  
             if client_id:
                 return self._sell_limit(amount, price, client_id)
             else:
