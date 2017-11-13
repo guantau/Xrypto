@@ -142,11 +142,11 @@ class Liquid(BasicBot):
         return
 
     def check_orders(self, refer_bid_price, refer_ask_price):
-        max_bprice = refer_bid_price*(1-config.LIQUID_MIN_DIFF)
-        min_bprice = refer_bid_price*(1-config.LIQUID_MAX_DIFF)
+        max_bprice = round(refer_bid_price * (1 - config.LIQUID_MIN_DIFF), 5)
+        min_bprice = round(refer_bid_price*(1-config.LIQUID_MAX_DIFF), 5)
 
-        min_sprice = refer_ask_price*(1+config.LIQUID_MIN_DIFF)
-        max_sprice = refer_ask_price*(1+config.LIQUID_MAX_DIFF)
+        min_sprice = round(refer_ask_price*(1+config.LIQUID_MIN_DIFF), 5)
+        max_sprice = round(refer_ask_price * (1 + config.LIQUID_MAX_DIFF), 5)
 
         order_ids = self.get_order_ids()
         if not order_ids:
