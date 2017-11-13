@@ -36,7 +36,8 @@ class BasicBot(Observer):
                     order_id = self.brokers[market].sell_limit(amount, price)
 
             if not order_id or order_id == -1:
-                logging.warn("%s @%s %f/%f failed, %s" % (type, market, amount, price, order_id))
+                logging.warn("%s @%s %f/%f failed, order_id = %s" %
+                             (type, market, amount, price, order_id))
                 return None
     
 
