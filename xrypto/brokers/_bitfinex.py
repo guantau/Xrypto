@@ -86,7 +86,7 @@ class Bitfinex(Broker):
         """Get balance"""
         res = self.client.balances()
 
-        logging.info("bitfinex get_balances: %s" % res)
+        logging.verbose("bitfinex get_balances: %s" % res)
 
         for entry in res:
             if entry['type'] != 'exchange':

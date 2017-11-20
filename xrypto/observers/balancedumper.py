@@ -60,7 +60,6 @@ class BalanceDumper(BasicBot):
     def sum_balance(self):
         self.btc_balance = self.bch_balance = self.eth_balance = 0
         for kclient in self.brokers:
-            print(kclient)
             self.btc_balance += self.brokers[kclient].btc_balance
             self.bch_balance += self.brokers[kclient].bch_balance 
             self.eth_balance += self.brokers[kclient].eth_balance
