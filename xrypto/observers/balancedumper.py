@@ -21,7 +21,7 @@ class BalanceDumper(BasicBot):
 
     def __init__(self):        
         self.brokers = create_brokers(
-            ['KKEX_BCH_BTC', 'Bitfinex_BCH_BTC', 'Bitfinex_ETH_BTC'])
+            ['KKEX_BCH_BTC', 'Bitfinex_BCH_BTC'])
 
         self.btc_balance = 0
         self.bch_balance = 0
@@ -64,7 +64,7 @@ class BalanceDumper(BasicBot):
             self.btc_balance += self.brokers[kclient].btc_balance
             self.bch_balance += self.brokers[kclient].bch_balance 
             self.eth_balance += self.brokers[kclient].eth_balance
-            
+
     @ratelimit
     def tick(self, depths):
         # get&verify price
