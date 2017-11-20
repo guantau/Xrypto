@@ -60,10 +60,11 @@ class BalanceDumper(BasicBot):
     def sum_balance(self):
         self.btc_balance = self.bch_balance = self.eth_balance = 0
         for kclient in self.brokers:
+            print(kclient)
             self.btc_balance += self.brokers[kclient].btc_balance
             self.bch_balance += self.brokers[kclient].bch_balance 
             self.eth_balance += self.brokers[kclient].eth_balance
-
+            
     @ratelimit
     def tick(self, depths):
         # get&verify price
@@ -89,7 +90,7 @@ class BalanceDumper(BasicBot):
         # Update client balance
         self.update_balance()
         self.sum_balance()
-
+        
         btc_diff = self.btc_balance - self.init_btc
         bch_diff = self.bch_balance - self.init_bch
         eth_diff = self.eth_balance - self.init_eth
