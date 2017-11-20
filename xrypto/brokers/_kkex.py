@@ -91,7 +91,7 @@ class KKEX(Broker):
     def _get_balances(self):
         """Get balance"""
         res = self.client.get_userinfo()
-        logging.verbose("kkex get_balances: %s" % res)
+        logging.info("kkex get_balances: %s" % res)
 
         entry = res['info']['funds']
 
