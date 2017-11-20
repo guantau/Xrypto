@@ -164,8 +164,8 @@ class Datafeed(object):
                 future = producer.send(kafka_topic, value=self.depths)
                 # Block for 'synchronous' sends
                 try:
-                    record_metadata = future.get(timeout=60)
-                    print(record_metadata)
+                    record_metadata = future.get(timeout=20)
+                    logging.info(record_metadata)
                 except  Exception as ex:
                     logging.warn("exception in producer:%s" % ex)
                     traceback.print_exc()

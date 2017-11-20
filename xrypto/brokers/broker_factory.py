@@ -14,6 +14,8 @@ def create_brokers(exchangeNames):
             xchg = KKEX('ETHBTC', config.KKEX_API_KEY, config.KKEX_SECRET_TOKEN)
         elif (name == 'Bitfinex_BCH_BTC'):
             xchg = Bitfinex('bchbtc', config.Bitfinex_API_KEY, config.Bitfinex_SECRET_TOKEN)
+        elif (name == 'Bitfinex_ETH_BTC'):
+            xchg = Bitfinex('ethbtc', config.Bitfinex_API_KEY, config.Bitfinex_SECRET_TOKEN)
         elif (name == 'Bittrex_BCH_BTC'):
             xchg = Bittrex('BTC-BCC', config.Bittrex_API_KEY, config.Bittrex_SECRET_TOKEN)
         elif (name == 'Viabtc_BCH_BTC'):

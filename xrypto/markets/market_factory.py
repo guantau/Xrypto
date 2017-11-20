@@ -26,6 +26,9 @@ def create_markets(exchangeNames):
             xchg = Bitfinex('btcusd')
         elif (name == 'Bitfinex_BCH_BTC'):
             xchg = Bitfinex('bchbtc')
+        elif (name == 'Bitfinex_ETH_BTC'):
+            xchg = Bitfinex('ethbtc')
+
         elif (name == 'Bittrex_BCH_BTC'):
             xchg = Bittrex('BTC-BCC')
         elif (name == 'Binance_ETH_BTC'):

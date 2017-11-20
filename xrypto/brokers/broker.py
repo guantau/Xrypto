@@ -28,14 +28,19 @@ class Broker(object):
         self.bch_balance = 0.
         self.bch_available = 0.
 
+        self.eth_balance = 0.
+        self.eth_available = 0.
+
     def __str__(self):
         return "%s: %s" % (self.name, str({"cny_balance": self.cny_balance,
                                             "cny_available": self.cny_available,
                                             "btc_balance": self.btc_balance,
                                             "btc_available": self.btc_available,
-                                           "bch_balance": self.bch_balance,
-                                           "bch_available": self.bch_available}))
-
+                                            "bch_balance": self.bch_balance,
+                                            "bch_available": self.bch_available,
+                                            "eth_balance": self.eth_balance,
+                                            "eth_available": self.eth_available}))
+                                            
     def buy_limit(self, amount, price, client_id=None):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))

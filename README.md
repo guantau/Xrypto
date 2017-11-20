@@ -56,7 +56,7 @@ In our new version, you also need run Kafka to pub/sub the depth data. see http:
     source setup-env.sh
     
     source setup-env.sh
-    python xrypto/cli.py feed -mKKEX_BCH_BTC,Bitfinex_BCH_BTC 
+    python xrypto/cli.py feed -mKKEX_BCH_BTC,Bitfinex_BCH_BTC,Bitfinex_ETH_BTC
     python xrypto/cli.py -oHedge
     python xrypto/cli.py -oBalanceDumper
 

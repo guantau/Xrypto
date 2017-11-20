@@ -20,6 +20,9 @@ class Bitfinex(Broker):
         if pair_code == 'bchbtc':
             base_currency = 'BTC'
             market_currency = 'BCH'
+        elif pair_code == 'ethbtc':
+            base_currency = 'BTC'
+            market_currency = 'ETH'
         else:
             assert(False)
         return base_currency, market_currency
@@ -91,7 +94,7 @@ class Bitfinex(Broker):
 
             currency = entry['currency'].upper()
             if currency not in (
-                    'BTC', 'BCH'):
+                    'BTC', 'BCH', 'ETH'):
                 continue
 
             if currency == 'BCH':
@@ -101,6 +104,10 @@ class Bitfinex(Broker):
             elif currency == 'BTC':
                 self.btc_available = float(entry['available'])
                 self.btc_balance = float(entry['amount'])
+
+            elif currency == 'ETH':
+                self.eth_available = float(entry['available'])
+                self.eth_balance = float(entry['amount'])
         return res
 
 

@@ -96,10 +96,12 @@ class KKEX(Broker):
         entry = res['info']['funds']
 
         self.bch_available = float(entry['free']['BCH'])
-        self.bch_balance = float(
-            entry['freezed']['BCH']) + float(entry['free']['BCH'])
+        self.bch_balance = float(entry['freezed']['BCH']) + float(entry['free']['BCH'])
         self.btc_available = float(entry['free']['BTC'])
         self.btc_balance = float(entry['freezed']['BTC']) + float(entry['free']['BTC'])
+        self.eth_available = float(entry['free']['ETH'])
+        self.eth_balance = float(
+            entry['freezed']['ETH']) + float(entry['free']['ETH'])
 
         return res
 
