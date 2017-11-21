@@ -58,9 +58,9 @@ class BalanceDumper(BasicBot):
     def sum_balance(self):
         self.balance['BTC'] = self.balance['BCH'] = self.balance['ETH'] = 0
         for kclient in self.brokers:
-            self.balance['BTC'] += self.brokers[kclient].balance['BTC']
-            self.balance['BCH'] += self.brokers[kclient].balance['BCH']
-            self.balance['ETH'] += self.brokers[kclient].balance['ETH']
+            self.balance['BTC'] += self.brokers[kclient].balance.get('BTC', 0)
+            self.balance['BCH'] += self.brokers[kclient].balance.get('BCH', 0)
+            self.balance['ETH'] += self.brokers[kclient].balance.get('ETH', 0)
 
     @ratelimit
     def tick(self, depths):
