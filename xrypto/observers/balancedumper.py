@@ -14,7 +14,7 @@ class BalanceDumper(BasicBot):
     eth_product = 'Bitfinex_ETH_BTC'
 
     last_profit = 0
-    tick_wait = 10*1
+    tick_wait = 10*6
 
     out_dir = './data/'
     asset_csv = 'asset_eth.csv'
