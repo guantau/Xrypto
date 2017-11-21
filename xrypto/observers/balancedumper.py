@@ -23,9 +23,7 @@ class BalanceDumper(BasicBot):
         self.brokers = create_brokers(
             ['KKEX_BCH_BTC', 'Bitfinex_BCH_BTC'])
 
-        self.btc_balance = 0
-        self.bch_balance = 0
-        self.eth_balance = 0
+        self.balance = {}
 
         self.init_btc = config.init_kk_btc + config.init_bf_btc
         self.init_bch = config.init_kk_bch + config.init_bf_bch
@@ -58,11 +56,11 @@ class BalanceDumper(BasicBot):
         fp.close()
 
     def sum_balance(self):
-        self.btc_balance = self.bch_balance = self.eth_balance = 0
+        self.balance['BTC'] = self.balance['BCH'] = self.balance['ETH'] = 0
         for kclient in self.brokers:
-            self.btc_balance += self.brokers[kclient].btc_balance
-            self.bch_balance += self.brokers[kclient].bch_balance 
-            self.eth_balance += self.brokers[kclient].eth_balance
+            self.balance['BTC'] += self.brokers[kclient].balance['BTC']
+            self.balance['BCH'] += self.brokers[kclient].balance['BCH']
+            self.balance['ETH'] += self.brokers[kclient].balance['ETH']
 
     @ratelimit
     def tick(self, depths):
@@ -90,9 +88,9 @@ class BalanceDumper(BasicBot):
         self.update_balance()
         self.sum_balance()
         
-        btc_diff = self.btc_balance - self.init_btc
-        bch_diff = self.bch_balance - self.init_bch
-        eth_diff = self.eth_balance - self.init_eth
+        btc_diff = self.balance['BTC'] - self.init_btc
+        bch_diff = self.balance['BCH'] - self.init_bch
+        eth_diff = self.balance['ETH'] - self.init_eth
 
         btc_profit = bch_diff * bch_bid_price + btc_diff
 
@@ -103,9 +101,9 @@ class BalanceDumper(BasicBot):
             self.first_run = False
             self.last_profit = btc_profit
             self.save_asset(bch_bid_price,
-                            self.btc_balance, 
-                            self.bch_balance, 
-                            self.eth_balance,
+                            self.balance['BTC'],
+                            self.balance['BCH'],
+                            self.balance['ETH'],
                             btc_profit)
             self.render_to_html()
 
