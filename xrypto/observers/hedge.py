@@ -117,7 +117,7 @@ class Hedge(BasicBot):
             amount = round(self.max_trade_amount * random.random(), 2)
             price = round(bprice*(1 - liquid_max_diff*random.random()), 5) #-10% random price base on bprice
 
-            Qty = min(self.mm_broker.availabe.get('BTC', 0) / price,
+            Qty = min(self.mm_broker.available.get('BTC', 0) / price,
                       self.hedge_broker.available.get(self.currency, 0))
 
             if Qty < amount or amount < self.min_trade_amount:
@@ -137,7 +137,7 @@ class Hedge(BasicBot):
             price = round(sprice*(1 + liquid_max_diff*random.random()), 5) # +10% random price base on sprice
 
             Qty = min(self.mm_broker.available.get(self.currency, 0),
-                      self.hedge_broker.availabe.get('BTC', 0) / price)
+                      self.hedge_broker.available.get('BTC', 0) / price)
 
             if Qty < amount or amount < self.min_trade_amount:
                 logging.verbose("SELL amount (%s) not IN (%s, %s)" %
