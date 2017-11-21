@@ -97,17 +97,9 @@ class Bitfinex(Broker):
                     'BTC', 'BCH', 'ETH'):
                 continue
 
-            if currency == 'BCH':
-                self.bch_available = float(entry['available'])
-                self.bch_balance = float(entry['amount'])
+            self.balance[currency] = float(entry['amount'])
+            self.available[currency] = float(entry['available'])
 
-            elif currency == 'BTC':
-                self.btc_available = float(entry['available'])
-                self.btc_balance = float(entry['amount'])
-
-            elif currency == 'ETH':
-                self.eth_available = float(entry['available'])
-                self.eth_balance = float(entry['amount'])
         return res
 
 

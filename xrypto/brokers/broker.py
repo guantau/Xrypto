@@ -19,6 +19,9 @@ class Broker(object):
         self.market_currency = market_currency
         self.pair_code = pair_code
 
+        self.balance = {}
+        self.available = {}
+
         self.cny_balance = 0.
         self.cny_available = 0.
 

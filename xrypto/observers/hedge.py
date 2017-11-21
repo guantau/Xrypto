@@ -12,14 +12,26 @@ import threading
 from brokers.broker_factory import create_brokers
 
 class Hedge(BasicBot):
-    def __init__(self, mm_market='KKEX_BCH_BTC', 
-                        refer_markets=['Bitfinex_BCH_BTC'],
-                        hedge_market='Bitfinex_BCH_BTC'):
+    def __init__(self, currency, mm_market, 
+                        refer_markets,
+                        hedge_market,
+                        max_trade_amount,
+                        min_trade_amount):
         super().__init__()
 
+        assert(currency)
+        assert(mm_market)
+        assert(refer_markets)
+        assert(hedge_market)
+        assert(max_trade_amount)
+        assert(min_trade_amount)
+
+        self.currency = currency
         self.mm_market = mm_market
         self.refer_markets = refer_markets
         self.hedge_market = hedge_market
+        self.max_trade_amount = max_trade_amount
+        self.min_trade_amount = min_trade_amount
 
         self.data_lost_count = 0
         self.risk_protect_count = 10
@@ -96,23 +108,21 @@ class Hedge(BasicBot):
         if self.buying_len() < 2*config.LIQUID_BUY_ORDER_PAIRS or self.selling_len() < 2 * config.LIQUID_SELL_ORDER_PAIRS:
             self.update_balance() 
 
-        max_bch_trade_amount = config.LIQUID_MAX_BCH_AMOUNT
-        min_bch_trade_amount = config.LIQUID_MIN_BCH_AMOUNT
-
         liquid_max_diff = config.LIQUID_MAX_DIFF
 
         # excute trade
         if self.buying_len() < 2*config.LIQUID_BUY_ORDER_PAIRS:
             bprice = refer_bid_price*(1-config.LIQUID_INIT_DIFF)
 
-            amount = round(max_bch_trade_amount*random.random(), 2)
+            amount = round(self.max_trade_amount * random.random(), 2)
             price = round(bprice*(1 - liquid_max_diff*random.random()), 5) #-10% random price base on bprice
 
-            Qty = min(self.mm_broker.btc_balance/price, self.hedge_broker.bch_available)
-            # Qty = min(Qty, config.LIQUID_BTC_RESERVE/price)
+            Qty = min(self.mm_broker.availabe.get('BTC', 0) / price,
+                      self.hedge_broker.available.get(self.currency, 0))
 
-            if Qty < amount or amount < min_bch_trade_amount:
-                logging.verbose("BUY amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
+            if Qty < amount or amount < self.min_trade_amount:
+                logging.verbose("BUY amount (%s) not IN (%s, %s)" %
+                                (amount, self.min_trade_amount, Qty))
             else:
                 if mm_ask_price > 0 and mm_ask_price < bprice:
                     price = bprice
@@ -123,14 +133,15 @@ class Hedge(BasicBot):
         if self.selling_len() < 2*config.LIQUID_SELL_ORDER_PAIRS:
             sprice = refer_ask_price*(1+config.LIQUID_INIT_DIFF)
 
-            amount = round(max_bch_trade_amount*random.random(), 2)
+            amount = round(self.max_trade_amount * random.random(), 2)
             price = round(sprice*(1 + liquid_max_diff*random.random()), 5) # +10% random price base on sprice
 
-            Qty = min(self.mm_broker.bch_available, self.hedge_broker.btc_available/price)
-            # Qty = min(Qty, config.LIQUID_BCH_RESERVE)
+            Qty = min(self.mm_broker.available.get(self.currency, 0),
+                      self.hedge_broker.availabe.get('BTC', 0) / price)
 
-            if Qty < amount or amount < min_bch_trade_amount:
-                logging.verbose("SELL amount (%s) not IN (%s, %s)" % (amount, min_bch_trade_amount, Qty))
+            if Qty < amount or amount < self.min_trade_amount:
+                logging.verbose("SELL amount (%s) not IN (%s, %s)" %
+                                (amount, self.min_trade_amount, Qty))
             else:
                 if mm_bid_price > 0 and mm_bid_price > sprice:
                     price = sprice
