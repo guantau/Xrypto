@@ -14,6 +14,11 @@ import traceback
 import re,sys,re
 import string
 import signal
+
+from kafka import KafkaProducer
+from kafka import KafkaConsumer
+from kafka.errors import KafkaError
+
 from markets.market_factory import create_markets
 
 is_sigint_up = False
@@ -121,13 +126,13 @@ class Datafeed(object):
         for market in self.markets:
             market.terminate()
 
-    def run_loop(self):
-        if len(self.markets) == 0:
-            print('empty markets')
+    def _run_loop(self, is_feed = True):
+        if not is_feed and len(self.observers) == 0:
+            print('empty observers')
             return
 
-        if len(self.observers) == 0:
-            print('empty observers')
+        if is_feed and len(self.markets) == 0:
+            print('empty markets')
             return
         #
         signal.signal(signal.SIGINT, sigint_handler)
@@ -135,23 +140,86 @@ class Datafeed(object):
         signal.signal(signal.SIGHUP, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
 
-        while True:
-            self.update_balance()
+        kafka_topic = config.kafka_topic
+        bootstrap_servers = config.bootstrap_servers
 
-            self.depths = self.update_depths()
+        try:
+            if is_feed:
+                producer = KafkaProducer(bootstrap_servers=bootstrap_servers,
+                                            # key_serializer=str.encode,
+                                            value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            else:
+                consumer = KafkaConsumer(kafka_topic,
+                                    value_deserializer=lambda m: json.loads(
+                                        m.decode('utf-8')),
+                                        bootstrap_servers=bootstrap_servers)
+        except Exception as ex:
+            logging.warn("exception depths:%s" % ex)
+            traceback.print_exc()
+            return
 
+        if is_feed:
+            while True:
+                self.depths = self.update_depths()
+                future = producer.send(kafka_topic, value=self.depths)
+                # Block for 'synchronous' sends
+                try:
+                    record_metadata = future.get(timeout=20)
+                    logging.info(record_metadata)
+                except  Exception as ex:
+                    logging.warn("exception in producer:%s" % ex)
+                    traceback.print_exc()
+                    continue
+
+                if is_sigint_up:
+                    # 中断时需要处理的代码
+                    logging.info("exit in producer")
+                    self.terminate()
+                    break
+
+                sys.stdout.write(".")
+                sys.stdout.flush()
+                time.sleep(config.refresh_rate)
+        else:
             try:
-                self.tick()
+                for message in consumer:
+                    if is_sigint_up:
+                        # 中断时需要处理的代码
+                        logging.info("exit in consumer begin")
+                        self.terminate()
+                        break
+
+                    # print (message)
+                    # message value and key are raw bytes -- decode if necessary!
+                    # e.g., for unicode: `message.value.decode('utf-8')`
+                    logging.info ("datafeed: %s:%d:%d: key=%s" % (message.topic, message.partition,
+                                                message.offset, message.key))
+                    # print(message)
+                    self.update_balance()
+
+                    self.depths = message.value
+                    self.tick()
+
+                    if is_sigint_up:
+                        # 中断时需要处理的代码
+                        logging.info("exit in consumer end")
+                        self.terminate()
+                        break
+
+                logging.info('consumer done...')
+            #     self.tick()
             except Exception as ex:
-                logging.warn("exception depths:%s" % ex)
+                logging.warn("exception in consumer:%s" % ex)
                 traceback.print_exc()
+                self.terminate()
                 return
 
-            if is_sigint_up:
-                # 中断时需要处理的代码
-                logging.info("APP Exit")
-                self.terminate()
-                break
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            time.sleep(config.refresh_rate)
+        logging.info('app exist.')
+    def run_loop(self):
+        is_feed = False
+        self._run_loop(is_feed)
+
+
+if __name__ == "__main__":
+    cli = Datafeed()
+    cli._run_loop()

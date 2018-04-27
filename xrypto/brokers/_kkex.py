@@ -1,9 +1,8 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 from .broker import Broker, TradeException
-import config
 import logging
-from exchanges.kkex_api import Client
+from xrypto.exchanges.kkex_api import Client
 
 class KKEX(Broker):
     def __init__(self, pair_code, api_key=None, api_secret=None):
@@ -13,11 +12,11 @@ class KKEX(Broker):
         super().__init__(base_currency, market_currency, pair_code)
         
         self.client = Client(
-                    api_key if api_key else config.KKEX_API_KEY,
-                    api_secret if api_secret else config.KKEX_SECRET_TOKEN)
+                    api_key,
+                    api_secret)
  
     def get_tradeable_pairs(self, pair_code):
-        if pair_code == 'BCCBTC':
+        if pair_code == 'BCHBTC':
             base_currency = 'BTC'
             market_currency = 'BCH'
         elif pair_code == 'ETHBTC':
@@ -92,14 +91,13 @@ class KKEX(Broker):
     def _get_balances(self):
         """Get balance"""
         res = self.client.get_userinfo()
-        logging.debug("kkex get_balances: %s" % res)
+        logging.verbose("kkex get_balances: %s" % res)
 
         entry = res['info']['funds']
 
-        self.bch_available = float(entry['free']['BCC'])
-        self.bch_balance = float(entry['freezed']['BCC']) + float(entry['free']['BCC'])
-        self.btc_available = float(entry['free']['BTC'])
-        self.btc_balance = float(entry['freezed']['BTC']) + float(entry['free']['BTC'])
+        for currency in ['BCH', 'BTC', 'ETH']:
+            self.balance[currency] = float(entry['free'][currency]) + float(entry['freezed'][currency])
+            self.available[currency] = float(entry['free'][currency])
 
         return res
 

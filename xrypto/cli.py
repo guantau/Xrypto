@@ -24,6 +24,7 @@ from observers.t_viabtc import TrigangularArbitrer_Viabtc
 from observers.t_binance import TrigangularArbitrer_Binance
 
 class CLI:
+    datafeed = None
     def __init__(self):
         self.inject_verbose_info()
 
@@ -53,6 +54,14 @@ class CLI:
             return
         if "test_pri" in args.command:
             self.test_pri(args)
+            return
+
+        if "feed" in args.command:
+            self.datafeed = Datafeed()
+            if args.markets:
+                self.datafeed.init_markets(args.markets.split(","))
+
+            self.datafeed._run_loop()
             return
 
         if "b-watch" in args.command:
@@ -211,7 +220,7 @@ class CLI:
                             help="markets, example: -mHaobtcCNY,Bitstamp")
         parser.add_argument("-s", "--status", help="status", action="store_true")
         parser.add_argument("command", nargs='*', default="watch",
-                            help='verb: "watch|replay-history|get-balance|list-public-markets|get-broker-balance"')
+                            help='verb: "feed|watch|replay-history|get-balance|list-public-markets|get-broker-balance"')
         args = parser.parse_args()
         self.init_logger(args)
         self.exec_command(args)

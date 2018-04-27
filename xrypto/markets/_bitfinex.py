@@ -43,6 +43,9 @@ class Bitfinex(Market):
         elif pair_code == 'btcusd':
             base_currency = 'USD'
             market_currency = 'BTC'
+        elif pair_code == 'ethbtc':
+            base_currency = 'BTC'
+            market_currency = 'ETH'
         else:
             assert(False)
         return base_currency, market_currency

@@ -1,0 +1,3 @@
+[submodule "bfh"]
+	path = bfh
+	url = https://github.com/philsong/BitcoinExchangeFH.git

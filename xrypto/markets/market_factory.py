@@ -11,7 +11,7 @@ def create_markets(exchangeNames):
     markets = {}
     for name in exchangeNames:
         if (name == 'KKEX_BCH_BTC'):
-            xchg = KKEX('BCCBTC')
+            xchg = KKEX('BCHBTC')
         elif (name == 'KKEX_ETH_BTC'):
             xchg = KKEX('ETHBTC')
   
@@ -26,6 +26,9 @@ def create_markets(exchangeNames):
             xchg = Bitfinex('btcusd')
         elif (name == 'Bitfinex_BCH_BTC'):
             xchg = Bitfinex('bchbtc')
+        elif (name == 'Bitfinex_ETH_BTC'):
+            xchg = Bitfinex('ethbtc')
+
         elif (name == 'Bittrex_BCH_BTC'):
             xchg = Bittrex('BTC-BCC')
         elif (name == 'Binance_ETH_BTC'):

@@ -1,8 +1,9 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
 import logging
-import config
 import inspect
+
+import xrypto.config as config
 
 def get_current_function_name():
     return inspect.stack()[1][3]
@@ -18,6 +19,9 @@ class Broker(object):
         self.market_currency = market_currency
         self.pair_code = pair_code
 
+        self.balance = {}
+        self.available = {}
+
         self.cny_balance = 0.
         self.cny_available = 0.
 
@@ -27,14 +31,19 @@ class Broker(object):
         self.bch_balance = 0.
         self.bch_available = 0.
 
+        self.eth_balance = 0.
+        self.eth_available = 0.
+
     def __str__(self):
         return "%s: %s" % (self.name, str({"cny_balance": self.cny_balance,
                                             "cny_available": self.cny_available,
                                             "btc_balance": self.btc_balance,
                                             "btc_available": self.btc_available,
-                                           "bch_balance": self.bch_balance,
-                                           "bch_available": self.bch_available}))
-
+                                            "bch_balance": self.bch_balance,
+                                            "bch_available": self.bch_available,
+                                            "eth_balance": self.eth_balance,
+                                            "eth_available": self.eth_available}))
+                                            
     def buy_limit(self, amount, price, client_id=None):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
@@ -61,7 +70,7 @@ class Broker(object):
         logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
                         price, self.base_currency, self.name))
 
-        try:
+        try:  
             if client_id:
                 return self._sell_limit(amount, price, client_id)
             else:

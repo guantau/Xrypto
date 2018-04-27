@@ -1,14 +1,15 @@
 import logging
-from .observer import Observer
 import json
 import time
 import os
 import math
 import sys
 import traceback
-import config
+from xrypto.observers.observer import Observer
 
 class BasicBot(Observer):
+    tick_wait = 3
+    last_tick = 0
     def __init__(self):
         super().__init__()
 
@@ -35,7 +36,8 @@ class BasicBot(Observer):
                     order_id = self.brokers[market].sell_limit(amount, price)
 
             if not order_id or order_id == -1:
-                logging.warn("%s @%s %f/%f failed, %s" % (type, market, amount, price, order_id))
+                logging.warn("%s @%s %f/%f failed, order_id = %s" %
+                             (type, market, amount, price, order_id))
                 return None
     
 
@@ -117,6 +119,30 @@ class BasicBot(Observer):
                 else:
                     break
 
+    def cancel_local_orders(self, market):
+        orders = self.brokers[market].get_orders_history()
+        if not orders:
+            return
+
+        for order in orders:
+            logging.verbose("Cancelling: %s %s @ %s" % (order['type'], order['amount'], order['price']))
+            while True:
+                result = self.cancel_order(market, order['type'], order['order_id']); 
+                if not result:
+                    time.sleep(10) 
+                else:
+                    break
+
     def update_balance(self):
         for kclient in self.brokers:
             self.brokers[kclient].get_balances()
+
+def ratelimit(func):
+    def __decorator(self, depths):
+        current_time = time.time()
+        if current_time - self.last_tick < self.tick_wait:
+            return
+        self.last_tick = current_time
+
+        func(self, depths)
+    return __decorator

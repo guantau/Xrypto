@@ -1,15 +1,7 @@
 markets = [
-# "BitstampUSD",
-# "BTCCCNY",
-# "BtceUSD",
-# "CoinbaseUSD",
-# "GeminiUSD",
-# "KrakenEUR",
-# "KrakenUSD",
-# "OKCoinCNY",
-# "HuobiCNY",
 # "Bitfinex_BCH_BTC",
 # "Bittrex_BCH_BTC",
+# "KKEX_BCH_BTC",
 ]
 
 # observers if any
@@ -25,6 +17,9 @@ trade_wait = 10
 RISK_PROTECT_MAX_VOLUMN = 100
 
 # liquid strategy parameters config
+LIQUID_MAX_AMOUNT = 1
+LIQUID_MIN_AMOUNT = 0.1
+
 LIQUID_MAX_BCH_AMOUNT = 1
 LIQUID_MIN_BCH_AMOUNT = 0.1
 
@@ -33,8 +28,6 @@ LIQUID_SELL_ORDER_PAIRS = 5
 LIQUID_INIT_DIFF = 0.03 #3%
 LIQUID_MAX_DIFF = 0.05 #5%
 LIQUID_MIN_DIFF = 0.01 #1%
-LIQUID_BTC_RESERVE = 5
-LIQUID_BCH_RESERVE = 50
 LIQUID_HEDGE_MIN_AMOUNT = 0.001
 
 # arbitrage config
@@ -141,8 +134,10 @@ WEBSOCKET_PORT = 13001
 
 ENV = 'local'
 
+kafka_topic = 'df-depth-replicated'
+bootstrap_servers = 'localhost:9092'
 try:
-    from local_config import *
+    from xrypto.local_config import *
 except ImportError:
     pass
 
