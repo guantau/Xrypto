@@ -1,20 +1,23 @@
+# Copyright (C) 2017, Philsong <songbohr@gmail.com>
+# Copyright (C) 2018, geektau <geektau@gmail.com>
+
 import time
-import urllib.request
-import urllib.error
-import urllib.parse
-import config
+
 import logging
-import sys
-from utils import log_exception
-import traceback
-import config
 import threading
+from decimal import Decimal
+import config
+
 
 class Market(object):
-    def __init__(self, base_currency, market_currency, pair_code, fee_rate):
-        self._name = None
-        self.base_currency = base_currency
-        self.market_currency = market_currency
+    def __init__(self, pair_code, fee_rate):
+        self.name = self.__class__.__name__
+
+        market_currency, base_currency = pair_code.split('_')
+
+        self.base_currency = base_currency.upper()
+        self.market_currency = market_currency.upper()
+
         self.pair_code = pair_code
         self.fee_rate = fee_rate
 
@@ -23,8 +26,10 @@ class Market(object):
 
         self.is_terminated = False
         self.request_timeout = 10 #5s
-        self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [
-                {'price': 0, 'amount': 0}]}
+        self.depth = {
+            'asks': [{'price': Decimal('0'), 'amount': Decimal('0')}],
+            'bids': [{'price': Decimal('0'), 'amount': Decimal('0')}]
+        }
         self.kline = None
                 
     @property
@@ -124,10 +129,10 @@ class Market(object):
         return res
 
     def sort_and_format(self, l, reverse=False):
-        l.sort(key=lambda x: float(x[0]), reverse=reverse)
+        l.sort(key=lambda x: Decimal(str(x[0])), reverse=reverse)
         r = []
         for i in l:
-            r.append({'price': float(i[0]), 'amount': float(i[1])})
+            r.append({'price': Decimal(str(i[0])), 'amount': Decimal(str(i[1]))})
         return r
 
     def format_depth(self, depth):

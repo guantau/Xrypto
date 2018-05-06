@@ -5,7 +5,7 @@ import os
 import math
 import sys
 import traceback
-from xrypto.observers.observer import Observer
+from observers.observer import Observer
 
 class BasicBot(Observer):
     tick_wait = 3

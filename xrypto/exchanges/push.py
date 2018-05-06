@@ -6,6 +6,8 @@ import math
 import os, time
 import sys
 import traceback
+import zmq
+import socket
 
 class Push:
     def __init__(self, zmq_port, zmq_host=None):
@@ -43,9 +45,9 @@ class Push:
             message = json.dumps(pyObj)
             logging.info( "notify message %s", message)
 
-            self.publish_socket.send_string(message)
+            self.publisher.send_string(message)
         except Exception as e:
-            logging.warn("publish_msg_obj Exception", exc_info=True)
+            logging.warning("publish_msg_obj Exception", exc_info=True)
             pass
 
     def publish_msg(self, type, price):
@@ -70,7 +72,7 @@ class Push:
         try:  
             while True:  
                 #topic, msg = s.recv_multipart()  
-                topic, msg = s.recv_pyobj()  
+                topic, msg = self.subscriber.recv_pyobj()
                 print('   Topic: %s, msg:%s' % (topic, msg)) 
         except KeyboardInterrupt:  
             pass  

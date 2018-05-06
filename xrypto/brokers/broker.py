@@ -1,56 +1,60 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
+# Copyright (C) 2018, geektau <geektau@gmail.com>
 
 import logging
 import inspect
+from prettytable import PrettyTable
+from decimal import Decimal
 
-import xrypto.config as config
+import config
+
 
 def get_current_function_name():
     return inspect.stack()[1][3]
 
+
 class TradeException(Exception):
     pass
 
+
 class Broker(object):
-    def __init__(self, base_currency, market_currency, pair_code):
+    def __init__(self, pair_code):
         self.name = self.__class__.__name__
 
-        self.base_currency = base_currency
-        self.market_currency = market_currency
-        self.pair_code = pair_code
+        market_currency, base_currency = pair_code.split('_')
 
-        self.balance = {}
-        self.available = {}
+        self.base_currency = base_currency.upper()
+        self.market_currency = market_currency.upper()
 
-        self.cny_balance = 0.
-        self.cny_available = 0.
+        if (self.base_currency not in ['USDT', 'BTC', 'ETH']):
+            logging.error('base currency is {}, only support BTC, ETH, USDT'.format(self.base_currency))
+            assert (False)
 
-        self.btc_balance = 0.
-        self.btc_available = 0.
-
-        self.bch_balance = 0.
-        self.bch_available = 0.
-
-        self.eth_balance = 0.
-        self.eth_available = 0.
+        self.balance = {
+            self.base_currency: {'balance': Decimal('0'), 'available': Decimal('0'), 'frozen': Decimal('0')},
+            self.market_currency: {'balance': Decimal('0'), 'available': Decimal('0'), 'frozen': Decimal('0')},
+        }
 
     def __str__(self):
-        return "%s: %s" % (self.name, str({"cny_balance": self.cny_balance,
-                                            "cny_available": self.cny_available,
-                                            "btc_balance": self.btc_balance,
-                                            "btc_available": self.btc_available,
-                                            "bch_balance": self.bch_balance,
-                                            "bch_available": self.bch_available,
-                                            "eth_balance": self.eth_balance,
-                                            "eth_available": self.eth_available}))
-                                            
+        table = PrettyTable(['Currency', 'Balance', 'Available', 'Frozen'])
+        table.add_row([self.base_currency,
+                       self.balance[self.base_currency]['balance'],
+                       self.balance[self.base_currency]['available'],
+                       self.balance[self.base_currency]['frozen']])
+        table.add_row([self.market_currency,
+                       self.balance[self.market_currency]['balance'],
+                       self.balance[self.market_currency]['available'],
+                       self.balance[self.market_currency]['frozen']])
+
+        return table.get_string()
+
     def buy_limit(self, amount, price, client_id=None):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
-            raise
+            return None
 
-        logging.info("BUY LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.name))
+        logging.info("BUY LIMIT %f %s at %f %s @%s" % (amount, self.market_currency,
+                                                       price, self.base_currency, self.name))
 
         try:
             if client_id:
@@ -61,16 +65,15 @@ class Broker(object):
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
-
     def sell_limit(self, amount, price, client_id=None):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
-            raise
-            
-        logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.name))
+            return None
 
-        try:  
+        logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency,
+                                                        price, self.base_currency, self.name))
+
+        try:
             if client_id:
                 return self._sell_limit(amount, price, client_id)
             else:
@@ -79,14 +82,13 @@ class Broker(object):
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
-
     def buy_maker(self, amount, price):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
-            raise
+            return None
 
-        logging.info("BUY MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.name))
+        logging.info("BUY MAKER %f %s at %f %s @%s" % (amount, self.market_currency,
+                                                       price, self.base_currency, self.name))
 
         try:
             return self._buy_maker(amount, price)
@@ -97,10 +99,10 @@ class Broker(object):
     def sell_maker(self, amount, price):
         if amount > config.RISK_PROTECT_MAX_VOLUMN:
             logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
-            raise
-            
-        logging.info("SELL MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.name))
+            return None
+
+        logging.info("SELL MAKER %f %s at %f %s @%s" % (amount, self.market_currency,
+                                                        price, self.base_currency, self.name))
         try:
             return self._sell_maker(amount, price)
         except Exception as e:
@@ -109,6 +111,7 @@ class Broker(object):
 
     def get_order(self, order_id):
         if not order_id:
+            logging.error('order id is null')
             return None
 
         try:
@@ -117,9 +120,9 @@ class Broker(object):
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
-
     def cancel_order(self, order_id):
         if not order_id:
+            logging.error('order id is null')
             return None
 
         try:
@@ -142,7 +145,6 @@ class Broker(object):
         except Exception as e:
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
-
 
     def get_balances(self):
         try:
@@ -197,4 +199,4 @@ class Broker(object):
         raise NotImplementedError("%s.get_balances(self)" % self.name)
 
     def test(self):
-        raise
+        return None

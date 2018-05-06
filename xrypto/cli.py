@@ -1,30 +1,27 @@
-
 # Copyright (C) 2016-2017, Phil Song <songbohr@gmail.com>
-import os
-import logging
-import argparse
+# Copyright (C) 2018, geektau <geektau@gmail.com>
+
 import sys
+import time
+
+import argparse
 import glob
 import inspect
-
-from logging.handlers import RotatingFileHandler
-import datetime
-import time
-import config
-import traceback
-
+import logging
 import markets
-from snapshot import Snapshot
-from datafeed import Datafeed
+import os
 from arbitrer import Arbitrer
 from brokers.broker_factory import create_brokers
+from datafeed import Datafeed
+from decimal import Decimal
+from logging.handlers import RotatingFileHandler
 from markets.market_factory import create_markets
-
-from observers.t_viabtc import TrigangularArbitrer_Viabtc
 from observers.t_binance import TrigangularArbitrer_Binance
+
 
 class CLI:
     datafeed = None
+
     def __init__(self):
         self.inject_verbose_info()
 
@@ -35,6 +32,10 @@ class CLI:
 
     def exec_command(self, args):
         logging.debug('exec_command:%s' % args)
+
+        if 'geo-sell' in args.command:
+            self.geo_sell(args)
+            return
 
         if "replay-history" in args.command:
             self.create_arbitrer(args)
@@ -55,40 +56,40 @@ class CLI:
         if "test_pri" in args.command:
             self.test_pri(args)
             return
-
-        if "feed" in args.command:
-            self.datafeed = Datafeed()
-            if args.markets:
-                self.datafeed.init_markets(args.markets.split(","))
-
-            self.datafeed._run_loop()
-            return
-
-        if "b-watch" in args.command:
-            self.create_datafeed(args)
-        else:
-            self.create_datafeed(args)
-
-            # special tranglar observer
-            if "t-watch-viabtc-bcc" in args.command:
-                self.register_t_viabtc_bcc(args)
-
-            if "t-watch-binance-wtc" in args.command:
-                self.register_t_binance_wtc(args)
-
-            if "t-watch-binance-bnb" in args.command:
-                self.register_t_binance_bnb(args)
-
-            if "t-watch-binance-mco" in args.command:
-                self.register_t_binance_mco(args)
-
-            if "t-watch-binance-qtum" in args.command:
-                self.register_t_binance_qtum(args)
-        
-        self.datafeed.run_loop()
+        #
+        # if "feed" in args.command:
+        #     self.datafeed = Datafeed()
+        #     if args.markets:
+        #         self.datafeed.init_markets(args.markets.split(","))
+        #
+        #     self.datafeed._run_loop()
+        #     return
+        #
+        # if "b-watch" in args.command:
+        #     self.create_datafeed(args)
+        # else:
+        #     self.create_datafeed(args)
+        #
+        #     # special tranglar observer
+        #     if "t-watch-viabtc-bcc" in args.command:
+        #         self.register_t_viabtc_bcc(args)
+        #
+        #     if "t-watch-binance-wtc" in args.command:
+        #         self.register_t_binance_wtc(args)
+        #
+        #     if "t-watch-binance-bnb" in args.command:
+        #         self.register_t_binance_bnb(args)
+        #
+        #     if "t-watch-binance-mco" in args.command:
+        #         self.register_t_binance_mco(args)
+        #
+        #     if "t-watch-binance-qtum" in args.command:
+        #         self.register_t_binance_qtum(args)
+        #
+        # self.datafeed.run_loop()
 
     def list_markets(self):
-        logging.debug('list_markets') 
+        logging.debug('list_markets')
         for filename in glob.glob(os.path.join(markets.__path__[0], "*.py")):
             module_name = os.path.basename(filename).replace('.py', '')
             if not module_name.startswith('_'):
@@ -99,7 +100,6 @@ class CLI:
                         if not obj.__module__.split('.')[-1].startswith('_'):
                             print(obj.__name__)
         sys.exit(0)
-
 
     def test_pub(self, args):
         if not args.markets:
@@ -120,6 +120,49 @@ class CLI:
         for market, broker in brokers.items():
             broker.get_balances()
 
+    def geo_sell(self, args):
+        if not args.markets:
+            logging.error("You must use --markets argument to specify markets")
+            sys.exit(2)
+
+        pmarkets = args.markets.split(",")
+        brokers = create_brokers(pmarkets)
+
+        if len(args.command) != 5:
+            logging.error('Usage: geo-sell start_price end_price quantity rate')
+            sys.exit(2)
+
+        start_price = Decimal(str(args.command[1]))
+        end_price = Decimal(str(args.command[2]))
+        quantity = Decimal(str(args.command[3]))
+        rate = Decimal(str(args.command[4]))
+
+        def geo_orders(start_price, end_price, quantity, rate):
+            if rate <= 0:
+                raise Exception('rate <= 0')
+            current_price = start_price
+            current_qty = quantity
+            orders = []
+            while current_price <= end_price:
+                previous_price = current_price
+                current_price = current_price * (1 + rate)
+                withdraw_money = (current_price - previous_price) * current_qty / 2
+
+                price = current_price.quantize(Decimal('0.00000001'))
+                qty = (withdraw_money / price).quantize(Decimal('0.01'))
+                current_qty -= qty
+
+                data = {'price': price, 'qty': qty}
+                orders.append(data)
+
+            return orders
+
+        for broker in brokers.values():
+            orders = geo_orders(start_price, end_price, quantity, rate)
+            for order in orders:
+                broker.sell_limit(amount=order['qty'], price=order['price'])
+
+
     def get_balance(self, args):
         if not args.markets:
             logging.error("You must use --markets argument to specify markets")
@@ -127,21 +170,21 @@ class CLI:
         pmarkets = args.markets.split(",")
         brokers = create_brokers(pmarkets)
 
-        snapshot = Snapshot()
+        # snapshot = Snapshot()
 
         while True:
-            total_btc = 0.
-            total_bch = 0.
+            # total_btc = 0.
+            # total_bch = 0.
             for market in brokers.values():
                 market.get_balances()
                 print(market)
-                total_btc += market.btc_balance
-                total_bch += market.bch_balance
-                snapshot.snapshot_balance(market.name[7:], market.btc_balance, market.bch_balance)
+                # total_btc += market.btc_balance
+                # total_bch += market.bch_balance
+                # snapshot.snapshot_balance(market.name[7:], market.btc_balance, market.bch_balance)
 
-            snapshot.snapshot_balance('ALL', total_btc, total_bch)
+            # snapshot.snapshot_balance('ALL', total_btc, total_bch)
 
-            time.sleep(60*10)
+            time.sleep(60 * 10)
 
     def create_datafeed(self, args):
         self.datafeed = Datafeed()
@@ -151,37 +194,11 @@ class CLI:
         self.arbitrer = Arbitrer()
         self.init_observers_and_markets(args)
 
-    def register_t_viabtc_bcc(self, args):
-        _observer = TrigangularArbitrer_Viabtc(base_pair='Viabtc_BCH_CNY',
-                                                    pair1='Viabtc_BCH_BTC',
-                                                    pair2='Viabtc_BTC_CNY')
-        self.datafeed.register_observer(_observer)
-
     def register_t_binance_wtc(self, args):
         _observer = TrigangularArbitrer_Binance(base_pair='Binance_WTC_BTC',
-                                                    pair1='Binance_WTC_ETH',
-                                                    pair2='Binance_ETH_BTC')
+                                                pair1='Binance_WTC_ETH',
+                                                pair2='Binance_ETH_BTC')
         self.datafeed.register_observer(_observer)
-
-    def register_t_binance_bnb(self, args):
-        _observer = TrigangularArbitrer_Binance(base_pair='Binance_BNB_BTC',
-                                                    pair1='Binance_BNB_ETH',
-                                                    pair2='Binance_ETH_BTC')
-        self.datafeed.register_observer(_observer)
-
-
-    def register_t_binance_mco(self, args):
-        _observer = TrigangularArbitrer_Binance(base_pair='Binance_MCO_BTC',
-                                                    pair1='Binance_MCO_ETH',
-                                                    pair2='Binance_ETH_BTC')
-        self.datafeed.register_observer(_observer)
-
-    def register_t_binance_qtum(self, args):
-        _observer = TrigangularArbitrer_Binance(base_pair='Binance_QTUM_BTC',
-                                                    pair1='Binance_QTUM_ETH',
-                                                    pair2='Binance_ETH_BTC')
-        self.datafeed.register_observer(_observer)
-
 
     def init_observers_and_markets(self, args):
         if args.observers:
@@ -191,17 +208,22 @@ class CLI:
 
     def init_logger(self, args):
         level = logging.INFO
+        simple_format = '%(asctime)s [%(levelname)s] %(message)s'
+        verbose_format = '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s'
+        datefmt = '%Y/%b/%d %H:%M:%S'
+
+        format = simple_format
         if args.verbose:
-            level = logging.VERBOSE
+            format = verbose_format
+
         if args.debug:
             level = logging.DEBUG
-            
-        logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s',
-                            level=level)
 
-        Rthandler = RotatingFileHandler('xrypto.log', maxBytes=100*1024*1024,backupCount=10)
+        logging.basicConfig(format=format, datefmt=datefmt, level=level)
+
+        Rthandler = RotatingFileHandler('xrypto.log', maxBytes=100 * 1024 * 1024, backupCount=10)
         Rthandler.setLevel(level)
-        formatter = logging.Formatter('%(asctime)-12s [%(levelname)s] %(message)s')  
+        formatter = logging.Formatter(verbose_format)
         Rthandler.setFormatter(formatter)
         logging.getLogger('').addHandler(Rthandler)
 
@@ -227,9 +249,11 @@ class CLI:
         print('main end')
         exit(-1)
 
+
 def main():
     cli = CLI()
     cli.main()
+
 
 if __name__ == "__main__":
     main()

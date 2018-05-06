@@ -1,42 +1,32 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
+# Copyright (C) 2018, geektau <geektau@gmail.com>
 
+from decimal import Decimal
 from .broker import Broker, TradeException
 import logging
-from bittrex import bittrex
+import config
+from exchanges.bittrex import Client
  
-# python3 xrypto/cli.py -m Bittrex_BCH_BTC get-balance
 
 class Bittrex(Broker):
-    def __init__(self, pair_code, api_key = None, api_secret = None):
-        base_currency, market_currency = self.get_tradeable_pairs(pair_code)
+    def __init__(self, pair_code, api_key=None, api_secret=None):
+        super().__init__(pair_code)
 
-        super().__init__(base_currency, market_currency, pair_code)
-
-        self.client = bittrex.Bittrex(api_key, api_secret)
+        self.client = Client(
+            api_key if api_key else config.BITTREX_API_KEY,
+            api_secret if api_secret else config.BITTREX_SECRET_KEY)
+        self.symbol = self.base_currency + '-' + self.market_currency
 
         # self.get_balances()
- 
-    def get_tradeable_pairs(self, pair_code):
-        if pair_code == 'BTC-BCC':
-            base_currency = 'BTC'
-            market_currency = 'BCH'
-        else:
-            assert(False)
-        return base_currency, market_currency
-
 
     def _buy_limit(self, amount, price):
         """Create a buy limit order"""
-        res = self.client.buy_limit(self.pair_code,
-            amount,
-            price)
+        res = self.client.buy_limit(self.symbol, amount, price)
         return res['result']['uuid']
 
     def _sell_limit(self, amount, price):
         """Create a sell limit order"""
-        res = self.client.sell_limit(self.pair_code,
-            amount,
-            price)
+        res = self.client.sell_limit(self.symbol, amount, price)
         return res['result']['uuid']
 
     def _order_status(self, res):
@@ -75,17 +65,23 @@ class Bittrex(Broker):
 
         for entry in res['result']:
             currency = entry['Currency']
-            if currency not in (
-                    'BTC', 'BCC'):
-                continue
 
-            if currency == 'BCC':
-                self.bch_available = float(entry['Available'])
-                self.bch_balance = float(entry['Balance'])
-
-            elif currency == 'BTC':
-                self.btc_available = float(entry['Available'])
-                self.btc_balance = float(entry['Balance'])  
+            if currency == self.base_currency:
+                balance = Decimal(entry['Balance'])
+                available = Decimal(entry['Available'])
+                frozen = Decimal(entry['Pending'])
+                self.balance[self.base_currency] = {
+                    'balance': balance,
+                    'available': available, 'frozen': frozen
+                }
+            elif currency == self.market_currency:
+                balance = Decimal(entry['Balance'])
+                available = Decimal(entry['Available'])
+                frozen = Decimal(entry['Pending'])
+                self.balance[self.market_currency] = {
+                    'balance': balance,
+                    'available': available, 'frozen': frozen
+                }
 
         return res
 
@@ -113,5 +109,3 @@ class Bittrex(Broker):
         print(cancel_status)
         order_status = self.get_order(order_id)
         print(order_status)
-
-        

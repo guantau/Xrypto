@@ -1,31 +1,32 @@
 # Copyright (C) 2016, Philsong <songbohr@gmail.com>
+# Copyright (C) 2018, geektau <geektau@gmail.com>
 
-import urllib.request
-import urllib.error
-import urllib.parse
-import json
+
+import logging
+from exchanges.huobi import Client
+
 from .market import Market
-from exchanges.huobi_api import Client
+
+logger = logging.getLogger(__name__)
 
 class Huobi(Market):
     def __init__(self, pair_code):
-        base_currency, market_currency = self.get_tradeable_pairs(pair_code)
-
-        super().__init__(base_currency, market_currency, pair_code, 0.002)
+        super().__init__(pair_code, 0.002)
 
         self.client = Client()
+        self.symbol = self.market_currency.lower()+self.base_currency.lower()
 
         self.event = 'huobi_depth'
-        self.subscribe_depth()
+        # self.subscribe_depth()
 
     def update_depth(self):
-        raw_depth = self.client.get_depth(currency=self.base_currency.lower(), coin_type=self.market_currency.lower(), count=50)
-        self.depth = self.format_depth(raw_depth)
-
-    def get_tradeable_pairs(self, pair_code):
-        if pair_code == 'btc_cny':
-            base_currency = 'CNY'
-            market_currency = 'BTC'
+        # step0, step1, step2, step3, step4, step5 (combine depth 0-5)
+        raw_depth = self.client.get_depth(self.symbol, 'step0')
+        if raw_depth:
+            if raw_depth['status'] == 'ok':
+                self.depth = self.format_depth({'asks': raw_depth['tick']['asks'],
+                                                'bids': raw_depth['tick']['bids']})
+            else:
+                logger.warning('update depth warning: ' + raw_depth['err-msg'])
         else:
-            assert(False)
-        return base_currency, market_currency
+            logger.warning('update depth get no data')

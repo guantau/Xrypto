@@ -1,59 +1,33 @@
-from ._kkex import KKEX
-from ._bittrex import Bittrex
-from ._bitfinex import Bitfinex
-from ._binance import Binance
-from ._viabtc import Viabtc
-from ._okex import OKEx
+# Copyright (C) 2017, Philsong <songbohr@gmail.com>
+# Copyright (C) 2018, geektau <geektau@gmail.com>
+
 import logging
-import config
+
+from ._binance import Binance
+from ._bittrex import Bittrex
+from ._gateio import Gateio
+from ._huobi import Huobi
+from ._kucoin import Kucoin
 
 def create_markets(exchangeNames):
     markets = {}
+
     for name in exchangeNames:
-        if (name == 'KKEX_BCH_BTC'):
-            xchg = KKEX('BCHBTC')
-        elif (name == 'KKEX_ETH_BTC'):
-            xchg = KKEX('ETHBTC')
-  
-        elif (name == 'Viabtc_BCH_BTC'):
-            xchg = Viabtc('bccbtc')
-        elif (name == 'Viabtc_BCH_CNY'):
-            xchg = Viabtc('bcccny')
-        elif (name == 'Viabtc_BTC_CNY'):
-            xchg = Viabtc('btccny')
+        exchange, market_currency, base_currency = name.split('_')
+        pair_code = market_currency+'_'+base_currency
 
-        elif (name == 'Bitfinex_BTC_USD'):
-            xchg = Bitfinex('btcusd')
-        elif (name == 'Bitfinex_BCH_BTC'):
-            xchg = Bitfinex('bchbtc')
-        elif (name == 'Bitfinex_ETH_BTC'):
-            xchg = Bitfinex('ethbtc')
-
-        elif (name == 'Bittrex_BCH_BTC'):
-            xchg = Bittrex('BTC-BCC')
-        elif (name == 'Binance_ETH_BTC'):
-            xchg = Binance('ETHBTC')
-        elif (name == 'Binance_BNB_BTC'):
-            xchg = Binance('BNBBTC')
-        elif (name == 'Binance_BNB_ETH'):
-            xchg = Binance('BNBETH')
-        elif (name == 'Binance_MCO_BTC'):
-            xchg = Binance('MCOBTC')
-        elif (name == 'Binance_MCO_ETH'):
-            xchg = Binance('MCOETH')
-        elif (name == 'Binance_QTUM_BTC'):
-            xchg = Binance('QTUMBTC')
-        elif (name == 'Binance_QTUM_ETH'):
-            xchg = Binance('QTUMETH')
-        elif (name == 'Binance_WTC_BTC'):
-            xchg = Binance('WTCBTC')
-        elif (name == 'Binance_WTC_ETH'):
-            xchg = Binance('WTCETH')
-
-        elif (name == 'OKEx_Future_Quarter'):
-            xchg = OKEx('btc_usd', contract_type='quarter')
+        if (exchange == 'BINANCE'):
+            xchg = Binance(pair_code)
+        elif (exchange == 'BITTREX'):
+            xchg = Bittrex(pair_code)
+        elif (exchange == 'GATEIO'):
+            xchg = Gateio(pair_code)
+        elif (exchange == 'HUOBI'):
+            xchg = Huobi(pair_code)
+        elif (exchange == 'KUCOIN'):
+            xchg = Kucoin(pair_code)
         else:
-            logging.warn('Exchange ' + name + ' not supported!')
+            logging.warning('Exchange ' + name + ' not supported!')
             assert(False)
         
         xchg.name = name
@@ -63,4 +37,5 @@ def create_markets(exchangeNames):
         ticker = xchg.get_ticker()
 
         markets[name]= xchg
+
     return markets

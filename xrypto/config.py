@@ -91,37 +91,80 @@ EMAIL_USE_TLS = True
 
 EMAIL_RECEIVER = ['FIXME@FIXME.com']
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s',
+            'datefmt': "%Y/%b/%d %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s|%(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'info': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'info.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'warn': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'warning.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'error': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'error.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        # This is the "catch all" logger
+        '': {
+            'handlers': ['console', 'info', 'warn', 'error'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
+}
+
 
 #### Trader Bot Config
 # Access to exchange APIs
-
-bitstamp_username = "FIXME"
-bitstamp_password = "FIXME"
-
-
 HUOBI_API_KEY = ''
-HUOBI_SECRET_TOKEN = ''
-
-OKCOIN_API_KEY = ''
-OKCOIN_SECRET_TOKEN = ''
+HUOBI_SECRET_KEY = ''
 
 OKEX_API_KEY = ''
-OKEX_SECRET_TOKEN = ''
+OKEX_SECRET_KEY = ''
 
-KKEX_API_KEY = ''
-KKEX_SECRET_TOKEN = ''
+BITTREX_API_KEY = ''
+BITTREX_SECRET_KEY = ''
 
-BITSTAR_API_KEY = ''
-BITSTAR_SECRET_TOKEN = ''
+BINANCE_API_KEY = ''
+BINANCE_SECRET_KEY = ''
 
-Bitfinex_API_KEY = ''
-Bitfinex_SECRET_TOKEN = ''
+GATEIO_API_KEY = ''
+GATEIO_SECRET_KEY = ''
 
-Bittrex_API_KEY = ''
-Bittrex_SECRET_TOKEN = ''
-
-Viabtc_API_KEY = ''
-Viabtc_SECRET_TOKEN = ''
+KUCOIN_API_KEY = ''
+KUCOIN_SECRET_KEY = ''
 
 
 SUPPORT_ZMQ = False
@@ -136,8 +179,9 @@ ENV = 'local'
 
 kafka_topic = 'df-depth-replicated'
 bootstrap_servers = 'localhost:9092'
+
 try:
-    from xrypto.local_config import *
+    from local_config import *
 except ImportError:
     pass
 

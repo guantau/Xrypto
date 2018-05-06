@@ -69,7 +69,6 @@ class Arbitrer(Datafeed):
         if abs(sell_total-buy_total) > 0.000001:
             logging.warn("sell_total=%s, buy_total=%s, max_amount_pair_t=%s", 
                 sell_total, buy_total, max_amount_pair_t)
-            raise
             return 0, 0, 0, 0
 
         volume = buy_total # or sell_total
