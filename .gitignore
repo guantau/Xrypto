@@ -57,3 +57,4 @@ snapshot_*.txt
 *.html
 tools/*.png
 
+.env
